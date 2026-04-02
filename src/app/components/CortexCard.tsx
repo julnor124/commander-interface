@@ -91,7 +91,7 @@ export default function CortexCard({ data, title, isActive = false, onRemove }: 
         </div>
 
         <div className="pt-4">
-          <div className="text-[14px] text-[#f2f2f2] mb-2">ADRAA-J</div>
+          <div className="text-[14px] text-[#f2f2f2] mb-2">INFO</div>
           <div className="text-[10px] leading-[1.3] text-[#f2f2f2]">
             <div>MON: 4</div>
             <div>TC: 0</div>
