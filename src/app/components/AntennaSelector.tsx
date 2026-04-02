@@ -1,0 +1,33 @@
+import { Antenna } from '../App';
+
+interface AntennaSelectorProps {
+  antennas: Antenna[];
+  selectedId: string;
+  onSelect: (id: string) => void;
+}
+
+export default function AntennaSelector({ antennas, selectedId, onSelect }: AntennaSelectorProps) {
+  return (
+    <div className="grid grid-cols-12 gap-1.5 w-full">
+      {antennas.map((antenna) => {
+        const isSelected = antenna.id === selectedId;
+        return (
+          <button
+            key={antenna.id}
+            onClick={() => onSelect(antenna.id)}
+            className={`
+              min-w-0 flex items-center justify-center gap-1.5 px-1.5 py-1 rounded-[14px] border border-white/70
+              cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70
+              ${isSelected ? 'bg-[#F4B740]' : 'bg-[#2a4258]'}
+            `}
+          >
+            <div className="w-2.5 h-2.5 rounded-full border border-white/80" style={{ backgroundColor: antenna.color }} />
+            <span className={`text-[11px] leading-none font-normal whitespace-nowrap truncate ${isSelected ? 'text-[#0f1c28]' : 'text-[#f2f2f2]'}`}>
+              {antenna.name}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}

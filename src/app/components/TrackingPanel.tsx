@@ -1,0 +1,88 @@
+interface TrackingPanelProps {
+  isActivePass?: boolean;
+  isUnavailable?: boolean;
+  passProgress?: number;
+}
+
+export default function TrackingPanel({
+  isActivePass = false,
+  isUnavailable = false,
+  passProgress = 0,
+}: TrackingPanelProps) {
+  const quadraticPath = (() => {
+    const maxX = 78;
+    const peakY = 20;
+    const edgeY = 98;
+    const midX = maxX / 2;
+    const curvature = (edgeY - peakY) / (midX * midX);
+    const step = 2;
+    const points = Array.from({ length: Math.floor(maxX / step) + 1 }, (_, idx) => {
+      const x = idx * step;
+      const y = peakY + curvature * (x - midX) * (x - midX);
+      return `${x},${y.toFixed(2)}`;
+    });
+    return points.join(' ');
+  })();
+
+  const renderTrackBox = (title: string, height: string) => {
+    return (
+      <div className="bg-[#1c2f42] border border-[#2e4a66] rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-medium text-[#f2f2f2]">{title}</h3>
+          <div className="h-3 w-20 bg-[#d9d9d9]">
+            {!isUnavailable && <span className="block text-[9px] text-[#223446] leading-3 text-center">0.5</span>}
+          </div>
+        </div>
+        <div className={`w-full bg-[#0f1c28] rounded border border-[#8fa4b8] relative overflow-hidden ${height}`}>
+          {isActivePass && title === 'Time error' && (
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <polyline
+                fill="none"
+                stroke="#3ABEFF"
+                strokeWidth="1.2"
+                pathLength={1}
+                style={{
+                  strokeDasharray: 1,
+                  strokeDashoffset: 1 - passProgress,
+                  transition: 'stroke-dashoffset 900ms linear',
+                }}
+                points={quadraticPath}
+              />
+            </svg>
+          )}
+          {isActivePass && (title === 'El delta' || title === 'Az delta') && (
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <line
+                x1="0"
+                y1="50"
+                x2="100"
+                y2="50"
+                stroke="#3ABEFF"
+                strokeWidth="1.2"
+                pathLength={1}
+                style={{
+                  strokeDasharray: 1,
+                  strokeDashoffset: 1 - passProgress,
+                  transition: 'stroke-dashoffset 900ms linear',
+                }}
+              />
+            </svg>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <h2 className="text-[18px] font-medium mb-3 text-center bg-[#213b54] rounded px-3 py-1">
+        Real Time Tracking
+      </h2>
+      <div className="space-y-4">
+        {renderTrackBox('Time error', 'h-[220px]')}
+        {renderTrackBox('El delta', 'h-[42px]')}
+        {renderTrackBox('Az delta', 'h-[42px]')}
+      </div>
+    </div>
+  );
+}
