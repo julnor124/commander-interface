@@ -46,9 +46,7 @@ interface PassWindow {
 
 const PASS_DURATION_MINUTES = 15;
 const DEFAULT_PASS_DURATION_MS = PASS_DURATION_MINUTES * 60_000;
-const PASS_DURATION_MS_BY_ANTENNA: Record<string, number> = {
-  amanda: 20_000,
-};
+const PASS_DURATION_MS_BY_ANTENNA: Record<string, number> = {};
 const ROLLOVER_GAP_MINUTES_BY_ANTENNA: Record<string, number> = {
   maja: 0,
   ella: 22,
@@ -395,6 +393,7 @@ function App() {
   const isPendingPassStart =
     hasScheduledPass &&
     currentTimeMs < selectedPassWindow.startAt;
+  const isPreparingFinalWindow = isPendingPassStart && msUntilPassStart <= 5 * 60 * 1000;
   const isActivePass =
     hasScheduledPass &&
     currentTimeMs >= selectedPassWindow.startAt &&
@@ -422,7 +421,7 @@ function App() {
   const countdownLabel = formatDuration(msUntilPassStart);
   const isC2ActiveView = activeCommanderView === 'commander2' && isActivePass;
   const isC2PreparingView = activeCommanderView === 'commander2' && isPendingPassStart && !isUnavailable;
-  const isC2PreparingFinalWindow = isC2PreparingView && msUntilPassStart <= 5 * 60 * 1000;
+  const isC2PreparingFinalWindow = isC2PreparingView && isPreparingFinalWindow;
   const isC2UnavailableView = activeCommanderView === 'commander2' && isUnavailable;
   const isC2FocusedPassView = activeCommanderView === 'commander2' && (isC2PreparingFinalWindow || isC2ActiveView);
   const isC2DefaultCountdownView =
@@ -439,6 +438,8 @@ function App() {
     activeCommanderView === 'commander2'
       ? `${selectedAntenna}-${isC2PreparingView ? 'preparing' : isC2UnavailableView ? 'unavailable' : isC2ActiveView ? 'active' : 'idle'}`
       : 'commander1';
+  const isCortexEngaged = isActivePass || isPreparingFinalWindow;
+  const effectiveActiveCortexIds = isCortexEngaged ? activeCortexIds : [];
   const hdrUnits = Array.from({ length: 12 }, (_, idx) => ({
     id: `hdr-${idx + 1}`,
     label: `Hdr/Rtt ${idx + 1}`,
@@ -516,9 +517,6 @@ function App() {
     });
 
     if (allocatedCortex.length > 0) {
-      if (activeCommanderView === 'commander1') {
-        setOpenCortexIds(allocatedCortex);
-      }
       logActivity(
         `Allocated ${allocatedCortex
           .map((id) => `Cortex ${cortexCards.findIndex((card) => card.id === id) + 1}`)
@@ -542,13 +540,13 @@ function App() {
       setOpenCortexIds([]);
       return;
     }
-    if (!hasScheduledPass) {
+    if (!hasScheduledPass || !isCortexEngaged) {
       setOpenCortexIds([]);
       return;
     }
     const assignedForSelected = assignedCortexByAntenna[selectedAntenna] ?? [];
     setOpenCortexIds(assignedForSelected);
-  }, [activeCommanderView, assignedCortexByAntenna, hasScheduledPass, selectedAntenna]);
+  }, [activeCommanderView, assignedCortexByAntenna, hasScheduledPass, isCortexEngaged, selectedAntenna]);
 
   useEffect(() => {
     if (!isActivePass) return;
@@ -580,6 +578,11 @@ function App() {
     if (!isC2ActiveView) return;
     setIsLeftPanelCollapsedC2(true);
   }, [isC2ActiveView, selectedAntenna]);
+
+  useEffect(() => {
+    if (activeCommanderView !== 'commander2') return;
+    setIsCortexDropdownOpen(false);
+  }, [activeCommanderView, selectedAntenna]);
 
   return (
     <div className="min-h-screen bg-[#0f1c28] text-white">
@@ -621,7 +624,7 @@ function App() {
       </div>
 
       {/* Main Layout */}
-      <div className={`grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)_320px] gap-4 p-4 transition-all duration-700 ${isUnavailable ? 'opacity-60 saturate-0' : ''} ${isActivePass ? 'shadow-[inset_0_0_0_1px_rgba(58,190,255,0.4)]' : ''}`}>
+      <div className={`grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)_320px] gap-4 p-4 transition-all duration-700 ${isUnavailable ? 'opacity-60 saturate-0' : ''}`}>
         {/* Left Sidebar */}
         {!isC2UnavailableView && (
         <div className="space-y-6">
@@ -664,7 +667,7 @@ function App() {
                 {isCortexDropdownOpen && (
                   <div className="bg-[#132434] border border-[#2e4a66] rounded-md p-2 space-y-1">
                     {cortexCards.map((card, idx) => {
-                      const isActive = activeCortexIds.includes(card.id);
+                      const isActive = effectiveActiveCortexIds.includes(card.id);
                       return (
                         <button
                           key={card.id}
@@ -697,9 +700,7 @@ function App() {
                         >
                           <span className="flex items-center gap-2">
                             <span
-                              className={`w-2.5 h-2.5 rounded-full ${
-                                unit.active ? 'bg-[#3ABEFF]' : 'bg-[#6B7C8F]'
-                              }`}
+                              className="w-2.5 h-2.5 rounded-full bg-[#6B7C8F]"
                             />
                             {unit.label}
                           </span>
@@ -713,13 +714,13 @@ function App() {
 
             <div className="space-y-3">
               {cortexCards
-                .filter((card) => openCortexIds.includes(card.id) && activeCortexIds.includes(card.id))
+                .filter((card) => openCortexIds.includes(card.id))
                 .map((card) => (
                   <CortexCard
                     key={card.id}
                     data={card}
                     title={`Cortex ${cortexCards.findIndex((item) => item.id === card.id) + 1}`}
-                    isActive={activeCortexIds.includes(card.id)}
+                    isActive={effectiveActiveCortexIds.includes(card.id)}
                     onRemove={() =>
                       setOpenCortexIds((prev) => prev.filter((id) => id !== card.id))
                     }

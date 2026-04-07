@@ -70,7 +70,7 @@ export default function PassInfoCard({
         </h2>
       )}
       {showContent ? (
-      <div className={`rounded-sm p-3 grid grid-cols-[1fr_auto] gap-3 ${isUnavailable ? 'border border-[#8fa4b8]' : isActivePass || isPendingPassStart ? 'border border-[#3ABEFF]' : 'border border-[#b8963e]'}`}>
+      <div className={`rounded-sm p-3 grid grid-cols-[1fr_auto] gap-3 ${isUnavailable ? 'border border-[#8fa4b8]' : isActivePass ? 'border border-[#3ABEFF]' : 'border border-[#b8963e]'}`}>
         <div className="space-y-2">
           <div className="mb-0.5">
             {isUnavailable ? (

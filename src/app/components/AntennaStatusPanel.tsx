@@ -17,8 +17,7 @@ export default function AntennaStatusPanel({
   const [elValue, setElValue] = useState(80.0);
   const [azValue, setAzValue] = useState(268.82);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const isLockedOpen = commanderView === 'commander2' && forceExpanded;
-  const showContent = !isCollapsed || isLockedOpen;
+  const showContent = !isCollapsed;
   useEffect(() => {
     if (forceExpanded) {
       setIsCollapsed(false);
@@ -54,14 +53,11 @@ export default function AntennaStatusPanel({
     <div>
       {commanderView === 'commander2' ? (
         <button
-          onClick={() => {
-            if (isLockedOpen) return;
-            setIsCollapsed((prev) => !prev);
-          }}
+          onClick={() => setIsCollapsed((prev) => !prev)}
           className="w-full relative flex items-center justify-end text-[16px] font-medium mb-3 bg-[#213b54] rounded px-2 py-1 cursor-pointer"
         >
           <span className="absolute inset-x-0 text-center">Antenna Status</span>
-          {isCollapsed && !isLockedOpen ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+          {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
         </button>
       ) : (
         <h2 className="text-[16px] font-medium mb-3 text-center bg-[#213b54] rounded px-2 py-1">

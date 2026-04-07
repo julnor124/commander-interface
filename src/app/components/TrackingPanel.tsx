@@ -50,7 +50,9 @@ export default function TrackingPanel({
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium text-[#f2f2f2]">{title}</h3>
           <div className="h-3 w-20 bg-[#d9d9d9]">
-            {!isUnavailable && <span className="block text-[9px] text-[#223446] leading-3 text-center">0.5</span>}
+            {isActivePass && !isUnavailable && (
+              <span className="block text-[9px] text-[#223446] leading-3 text-center">0.5</span>
+            )}
           </div>
         </div>
         <div className={`w-full bg-[#0f1c28] rounded border border-[#8fa4b8] relative overflow-hidden ${height}`}>
