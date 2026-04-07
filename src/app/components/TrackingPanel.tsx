@@ -1,16 +1,36 @@
+import { useEffect, useState } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+
 interface TrackingPanelProps {
   isActivePass?: boolean;
   isUnavailable?: boolean;
   passProgress?: number;
+  commanderView?: 'commander1' | 'commander2';
+  forceCollapsed?: boolean;
+  forceExpanded?: boolean;
 }
 
 export default function TrackingPanel({
   isActivePass = false,
   isUnavailable = false,
   passProgress = 0,
+  commanderView = 'commander1',
+  forceCollapsed = false,
+  forceExpanded = false,
 }: TrackingPanelProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  useEffect(() => {
+    if (forceCollapsed) {
+      setIsCollapsed(true);
+    }
+  }, [forceCollapsed]);
+  useEffect(() => {
+    if (forceExpanded) {
+      setIsCollapsed(false);
+    }
+  }, [forceExpanded]);
   const quadraticPath = (() => {
-    const maxX = 78;
+    const maxX = 100;
     const peakY = 20;
     const edgeY = 98;
     const midX = maxX / 2;
@@ -75,14 +95,26 @@ export default function TrackingPanel({
 
   return (
     <div>
-      <h2 className="text-[18px] font-medium mb-3 text-center bg-[#213b54] rounded px-3 py-1">
-        Real Time Tracking
-      </h2>
-      <div className="space-y-4">
-        {renderTrackBox('Time error', 'h-[220px]')}
-        {renderTrackBox('El delta', 'h-[42px]')}
-        {renderTrackBox('Az delta', 'h-[42px]')}
-      </div>
+      {commanderView === 'commander2' ? (
+        <button
+          onClick={() => setIsCollapsed((prev) => !prev)}
+          className="w-full relative flex items-center justify-end text-[18px] font-medium mb-3 bg-[#213b54] rounded px-3 py-1 cursor-pointer"
+        >
+          <span className="absolute inset-x-0 text-center">Real Time Tracking</span>
+          {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+        </button>
+      ) : (
+        <h2 className="text-[18px] font-medium mb-3 text-center bg-[#213b54] rounded px-3 py-1">
+          Real Time Tracking
+        </h2>
+      )}
+      {commanderView === 'commander2' && isCollapsed ? null : (
+        <div className="space-y-4">
+          {renderTrackBox('Time error', 'h-[220px]')}
+          {renderTrackBox('El delta', 'h-[42px]')}
+          {renderTrackBox('Az delta', 'h-[42px]')}
+        </div>
+      )}
     </div>
   );
 }

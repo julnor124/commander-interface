@@ -4,13 +4,21 @@ interface AntennaSelectorProps {
   antennas: Antenna[];
   selectedId: string;
   onSelect: (id: string) => void;
+  activeAntennaIds?: string[];
 }
 
-export default function AntennaSelector({ antennas, selectedId, onSelect }: AntennaSelectorProps) {
+export default function AntennaSelector({
+  antennas,
+  selectedId,
+  onSelect,
+  activeAntennaIds = [],
+}: AntennaSelectorProps) {
   return (
     <div className="grid grid-cols-12 gap-1.5 w-full">
       {antennas.map((antenna) => {
         const isSelected = antenna.id === selectedId;
+        const isActivePass = activeAntennaIds.includes(antenna.id);
+        const dotColor = isActivePass ? '#3ABEFF' : antenna.color === '#6B7C8F' ? '#6B7C8F' : '#B8963E';
         return (
           <button
             key={antenna.id}
@@ -21,7 +29,7 @@ export default function AntennaSelector({ antennas, selectedId, onSelect }: Ante
               ${isSelected ? 'bg-[#F4B740]' : 'bg-[#2a4258]'}
             `}
           >
-            <div className="w-2.5 h-2.5 rounded-full border border-white/80" style={{ backgroundColor: antenna.color }} />
+            <div className="w-2.5 h-2.5 rounded-full border border-white/80" style={{ backgroundColor: dotColor }} />
             <span className={`text-[11px] leading-none font-normal whitespace-nowrap truncate ${isSelected ? 'text-[#0f1c28]' : 'text-[#f2f2f2]'}`}>
               {antenna.name}
             </span>

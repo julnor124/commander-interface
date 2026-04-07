@@ -1,17 +1,44 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { logActivity } from '../utils/activityLog';
 
 interface ControlPanelProps {
   isUnavailable?: boolean;
+  commanderView?: 'commander1' | 'commander2';
+  forceCollapsed?: boolean;
+  forceExpanded?: boolean;
 }
 
-export default function ControlPanel({ isUnavailable = false }: ControlPanelProps) {
+export default function ControlPanel({
+  isUnavailable = false,
+  commanderView = 'commander1',
+  forceCollapsed = false,
+  forceExpanded = false,
+}: ControlPanelProps) {
   const [matrixSelection, setMatrixSelection] = useState<'ON' | 'OFF'>('ON');
   const [rfSelection, setRfSelection] = useState<'ON' | 'OFF'>('OFF');
   const [xRfSelection, setXRfSelection] = useState<'ON' | 'OFF'>('OFF');
   const [timeValue, setTimeValue] = useState(0);
   const [elValue, setElValue] = useState(0);
   const [stepValue, setStepValue] = useState(0);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (commanderView === 'commander2') {
+      setIsCollapsed(true);
+    }
+  }, [commanderView]);
+
+  useEffect(() => {
+    if (forceCollapsed) {
+      setIsCollapsed(true);
+    }
+  }, [forceCollapsed]);
+  useEffect(() => {
+    if (forceExpanded) {
+      setIsCollapsed(false);
+    }
+  }, [forceExpanded]);
 
   const matrixOptions = [
     { id: 'ON', label: 'ON' },
@@ -43,9 +70,20 @@ export default function ControlPanel({ isUnavailable = false }: ControlPanelProp
 
   return (
     <div>
-      <h2 className="text-[14px] font-medium mb-2 bg-[#213b54] rounded px-3 py-1.5">Control</h2>
+      {commanderView === 'commander2' ? (
+        <button
+          onClick={() => setIsCollapsed((prev) => !prev)}
+          className="w-full relative flex items-center justify-end text-[14px] font-medium mb-2 bg-[#213b54] rounded px-3 py-1.5 cursor-pointer"
+        >
+          <span className="absolute inset-x-0 text-center">Control</span>
+          {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+        </button>
+      ) : (
+        <h2 className="text-[14px] font-medium mb-2 bg-[#213b54] rounded px-3 py-1.5">Control</h2>
+      )}
 
-      <div className="grid grid-cols-3 gap-2.5">
+      {commanderView === 'commander2' && isCollapsed ? null : (
+      <div className={`grid gap-2.5 ${commanderView === 'commander2' ? 'grid-cols-2' : 'grid-cols-3'}`}>
         {/* Left: Matrix Controls */}
         <div className="space-y-2 bg-[#173148] rounded p-2 min-h-[96px]">
           <div>
@@ -147,49 +185,52 @@ export default function ControlPanel({ isUnavailable = false }: ControlPanelProp
           </div>
         </div>
 
-        <div className="space-y-1.5 bg-[#173148] rounded p-2 min-h-[96px]">
-          <div className="flex items-center justify-between">
-            <h3 className="text-[11px] text-[#c4d0da] text-left">Offset</h3>
-            <button
-              onClick={handleResetOffsets}
-              className={`px-1.5 h-4 bg-[#d0d0d0] text-[#223446] rounded text-[9px] ${clickFeedbackClass}`}
-            >
-              Reset
-            </button>
-          </div>
-          {[
-            { label: 'Time', value: timeValue, setter: setTimeValue },
-            { label: 'El', value: elValue, setter: setElValue },
-            { label: 'Az', value: 0, setter: setElValue },
-            { label: 'Step', value: stepValue, setter: setStepValue },
-          ].map((control) => (
-            <div key={control.label} className="flex items-center gap-2">
-              <span className="text-[11px] text-[#c4d0da] w-8">{control.label}</span>
-              <div className="w-4 h-4 bg-[#d0d0d0] rounded text-center leading-4 text-[#223446] text-[10px]">
-                {isUnavailable ? '' : control.value}
-              </div>
+        {commanderView !== 'commander2' && (
+          <div className="space-y-1.5 bg-[#173148] rounded p-2 min-h-[96px]">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[11px] text-[#c4d0da] text-left">Offset</h3>
               <button
-                onClick={() => {
-                  handleDecrement(control.setter);
-                  logActivity(`Offset ${control.label} decreased`);
-                }}
-                className={`w-4 h-4 bg-[#d0d0d0] text-[#223446] rounded text-[10px] leading-4 ${clickFeedbackClass}`}
+                onClick={handleResetOffsets}
+                className={`px-1.5 h-4 bg-[#d0d0d0] text-[#223446] rounded text-[9px] ${clickFeedbackClass}`}
               >
-                -
-              </button>
-              <button
-                onClick={() => {
-                  handleIncrement(control.setter);
-                  logActivity(`Offset ${control.label} increased`);
-                }}
-                className={`w-4 h-4 bg-[#d0d0d0] text-[#223446] rounded text-[10px] leading-4 ${clickFeedbackClass}`}
-              >
-                +
+                Reset
               </button>
             </div>
-          ))}
-        </div>
+            {[
+              { label: 'Time', value: timeValue, setter: setTimeValue },
+              { label: 'El', value: elValue, setter: setElValue },
+              { label: 'Az', value: 0, setter: setElValue },
+              { label: 'Step', value: stepValue, setter: setStepValue },
+            ].map((control) => (
+              <div key={control.label} className="flex items-center gap-2">
+                <span className="text-[11px] text-[#c4d0da] w-8">{control.label}</span>
+                <div className="w-4 h-4 bg-[#d0d0d0] rounded text-center leading-4 text-[#223446] text-[10px]">
+                  {isUnavailable ? '' : control.value}
+                </div>
+                <button
+                  onClick={() => {
+                    handleDecrement(control.setter);
+                    logActivity(`Offset ${control.label} decreased`);
+                  }}
+                  className={`w-4 h-4 bg-[#d0d0d0] text-[#223446] rounded text-[10px] leading-4 ${clickFeedbackClass}`}
+                >
+                  -
+                </button>
+                <button
+                  onClick={() => {
+                    handleIncrement(control.setter);
+                    logActivity(`Offset ${control.label} increased`);
+                  }}
+                  className={`w-4 h-4 bg-[#d0d0d0] text-[#223446] rounded text-[10px] leading-4 ${clickFeedbackClass}`}
+                >
+                  +
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+      )}
     </div>
   );
 }

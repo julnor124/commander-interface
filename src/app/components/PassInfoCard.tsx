@@ -1,8 +1,18 @@
+import { useEffect, useState } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+
 interface PassInfoCardProps {
   isActivePass?: boolean;
   isUnavailable?: boolean;
   isPendingPassStart?: boolean;
   passStartsInSeconds?: number;
+  passStartsAtLabel?: string;
+  passEndsAtLabel?: string;
+  timeLeftLabel?: string;
+  countdownLabel?: string;
+  commanderView?: 'commander1' | 'commander2';
+  forceExpanded?: boolean;
+  forceCollapsed?: boolean;
 }
 
 export default function PassInfoCard({
@@ -10,7 +20,28 @@ export default function PassInfoCard({
   isUnavailable = false,
   isPendingPassStart = false,
   passStartsInSeconds = 0,
+  passStartsAtLabel = '--:--',
+  passEndsAtLabel = '--:--',
+  timeLeftLabel = '0min 00s',
+  countdownLabel = '0min 00s',
+  commanderView = 'commander1',
+  forceExpanded = false,
+  forceCollapsed = false,
 }: PassInfoCardProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const isLockedOpen = commanderView === 'commander2' && forceExpanded;
+  const showContent = !isCollapsed || isLockedOpen;
+  const isFinalCountdownAlert = isPendingPassStart && passStartsInSeconds <= 15;
+  useEffect(() => {
+    if (forceExpanded) {
+      setIsCollapsed(false);
+    }
+  }, [forceExpanded]);
+  useEffect(() => {
+    if (forceCollapsed) {
+      setIsCollapsed(true);
+    }
+  }, [forceCollapsed]);
   const metrics = [
     { label: 'Time pending' },
     { label: 'AOS' },
@@ -22,9 +53,23 @@ export default function PassInfoCard({
 
   return (
     <div>
-      <h2 className="text-[18px] font-medium mb-3 text-center bg-[#213b54] rounded px-3 py-1">
-        Pass Information
-      </h2>
+      {commanderView === 'commander2' ? (
+        <button
+          onClick={() => {
+            if (isLockedOpen) return;
+            setIsCollapsed((prev) => !prev);
+          }}
+          className="w-full relative flex items-center justify-end text-[18px] font-medium mb-3 bg-[#213b54] rounded px-3 py-1 cursor-pointer"
+        >
+          <span className="absolute inset-x-0 text-center">Pass Information</span>
+          {isCollapsed && !isLockedOpen ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+        </button>
+      ) : (
+        <h2 className="text-[18px] font-medium mb-3 text-center bg-[#213b54] rounded px-3 py-1">
+          Pass Information
+        </h2>
+      )}
+      {showContent ? (
       <div className={`rounded-sm p-3 grid grid-cols-[1fr_auto] gap-3 ${isUnavailable ? 'border border-[#8fa4b8]' : isActivePass || isPendingPassStart ? 'border border-[#3ABEFF]' : 'border border-[#b8963e]'}`}>
         <div className="space-y-2">
           <div className="mb-0.5">
@@ -33,38 +78,46 @@ export default function PassInfoCard({
             ) : isPendingPassStart ? (
               <>
                 <span className="text-[clamp(15px,1.35vw,28px)] text-[#d9d9d9]">Pass starts in: </span>
-                <span className="text-[clamp(15px,1.35vw,28px)] font-normal text-[#3ABEFF]">
-                  {passStartsInSeconds}s
+                <span
+                  className={`text-[clamp(15px,1.35vw,28px)] font-normal ${
+                    isFinalCountdownAlert
+                      ? 'text-[#B8963E] font-extrabold animate-pulse [animation-duration:300ms] drop-shadow-[0_0_10px_rgba(184,150,62,0.95)]'
+                      : 'text-[#B8963E]'
+                  }`}
+                >
+                  {countdownLabel}
                 </span>
               </>
             ) : isActivePass ? (
               <>
                 <span className="text-[clamp(15px,1.35vw,28px)] text-[#d9d9d9]">Time Left: </span>
                 <span className="text-[clamp(15px,1.35vw,28px)] font-normal text-[#3ABEFF]">
-                  9min 12s
+                  {timeLeftLabel}
                 </span>
               </>
             ) : (
               <>
                 <span className="text-[clamp(15px,1.4vw,30px)] text-[#d9d9d9]">Countdown: </span>
                 <span className="text-[clamp(15px,1.4vw,30px)] font-normal text-[#B8963E]">
-                  20min 10s
+                  {countdownLabel}
                 </span>
               </>
             )}
           </div>
 
           <div className="space-y-0 text-[clamp(13px,1.1vw,22px)] leading-[1.12] min-h-[56px]">
-            {isActivePass ? (
-              <>
-                <div className="text-[#f2f2f2]">Started: 17:10</div>
-                <div className="text-[#f2f2f2]">Ends: 17:25</div>
-              </>
-            ) : (
-              <>
-                <div className="text-[#f2f2f2]">Starts: 17:00</div>
-                <div className="text-[#f2f2f2]">Ends: 17:15</div>
-              </>
+            {!isUnavailable && (
+              isActivePass ? (
+                <>
+                  <div className="text-[#f2f2f2]">Started: {passStartsAtLabel}</div>
+                  <div className="text-[#f2f2f2]">Ends: {passEndsAtLabel}</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-[#f2f2f2]">Starts: {passStartsAtLabel}</div>
+                  <div className="text-[#f2f2f2]">Ends: {passEndsAtLabel}</div>
+                </>
+              )
             )}
           </div>
 
@@ -84,7 +137,7 @@ export default function PassInfoCard({
                   <span className="block text-[9px] leading-4 text-center text-[#223446]">&nbsp;</span>
                 ) : isActivePass && (
                   <span className="block text-[9px] leading-4 text-center text-[#223446]">
-                    {['17:10:00', '17:13:40', '17:16:45', '17:22:05', '17:25:14', '17:25:14'][index]}
+                    {[passStartsAtLabel, passStartsAtLabel, passStartsAtLabel, passEndsAtLabel, passEndsAtLabel, passEndsAtLabel][index]}
                   </span>
                 )}
               </div>
@@ -92,6 +145,7 @@ export default function PassInfoCard({
           ))}
         </div>
       </div>
+      ) : null}
     </div>
   );
 }
