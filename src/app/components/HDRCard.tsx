@@ -6,9 +6,15 @@ const METRICS = ['Total', 'Bad', 'Connected', 'Discontinuity'];
 
 interface HDRCardProps {
   title?: string;
+  isActive?: boolean;
+  usageLabel?: string;
 }
 
-export default function HDRCard({ title }: HDRCardProps) {
+export default function HDRCard({
+  title,
+  isActive = false,
+  usageLabel,
+}: HDRCardProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   if (!isVisible) return null;
@@ -21,6 +27,17 @@ export default function HDRCard({ title }: HDRCardProps) {
       >
         <X className="w-4 h-4 text-[#b57a84]" />
       </button>
+      {usageLabel && (
+        <div
+          className={`absolute top-2 right-10 inline-flex items-center rounded px-2 py-0.5 text-[10px] font-semibold border ${
+            isActive
+              ? 'text-[#7cd7ff] bg-[#15354a] border-[#3ABEFF]/45'
+              : 'text-[#b7c3ce] bg-[#26323d] border-[#4f5d6a]'
+          }`}
+        >
+          {usageLabel}
+        </div>
+      )}
 
       <div className="mb-2">
         <h3 className="text-[14px] leading-none text-[#f2f2f2] underline underline-offset-4">

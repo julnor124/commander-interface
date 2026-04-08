@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import { logActivity } from '../../features/activityLog/activityLogBus';
 
 interface ControlPanelProps {
@@ -22,6 +22,10 @@ export default function ControlPanel({
   const [elValue, setElValue] = useState(0);
   const [stepValue, setStepValue] = useState(0);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMatrixOffDialogOpen, setIsMatrixOffDialogOpen] = useState(false);
+  const [rfOffDialogTarget, setRfOffDialogTarget] = useState<null | 'RF' | 'X RF'>(
+    null,
+  );
 
   useEffect(() => {
     if (commanderView === 'commander2') {
@@ -45,7 +49,7 @@ export default function ControlPanel({
     { id: 'OFF', label: 'OFF' },
   ];
   const clickFeedbackClass =
-    'cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70';
+    'press-feedback cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70';
 
   const handleIncrement = (setter: React.Dispatch<React.SetStateAction<number>>) => {
     setter((prev) => prev + 1);
@@ -75,11 +79,19 @@ export default function ControlPanel({
           onClick={() => setIsCollapsed((prev) => !prev)}
           className="w-full relative flex items-center justify-end text-[14px] font-medium mb-2 bg-[#213b54] rounded px-3 py-1.5 cursor-pointer"
         >
-          <span className="absolute inset-x-0 text-center">Control</span>
+          <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
+            <SlidersHorizontal size={14} />
+            Control
+          </span>
           {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
         </button>
       ) : (
-        <h2 className="text-[14px] font-medium mb-2 bg-[#213b54] rounded px-3 py-1.5">Control</h2>
+        <h2 className="text-[14px] font-medium mb-2 bg-[#213b54] rounded px-3 py-1.5 text-center">
+          <span className="inline-flex items-center justify-center gap-1.5 w-full">
+            <SlidersHorizontal size={14} />
+            Control
+          </span>
+        </h2>
       )}
 
       {commanderView === 'commander2' && isCollapsed ? null : (
@@ -87,12 +99,16 @@ export default function ControlPanel({
         {/* Left: Matrix Controls */}
         <div className="space-y-2 bg-[#173148] rounded p-2 min-h-[96px]">
           <div>
-            <h3 className="text-[11px] text-[#c4d0da] mb-1.5 text-center">Matrix</h3>
+            <h3 className="text-[10px] tracking-wide uppercase text-[#8ea2b3] mb-1.5 text-center">Matrix</h3>
             <div className="grid grid-cols-1 gap-2">
               {matrixOptions.map((option) => (
                 <button
                   key={option.id}
                   onClick={() => {
+                    if (option.id === 'OFF') {
+                      setIsMatrixOffDialogOpen(true);
+                      return;
+                    }
                     setMatrixSelection(option.id as 'ON' | 'OFF');
                     logActivity(`Matrix set to ${option.id}`);
                   }}
@@ -112,7 +128,7 @@ export default function ControlPanel({
 
         {/* Right: RF Controls and Inputs */}
         <div className="space-y-2 bg-[#173148] rounded p-2 min-h-[96px]">
-          <h3 className="text-[11px] text-[#c4d0da] text-left">RF</h3>
+          <h3 className="text-[10px] tracking-wide uppercase text-[#8ea2b3] text-left">RF</h3>
           <div>
             <div className="grid grid-cols-2 gap-2 mb-2">
               <button
@@ -143,8 +159,7 @@ export default function ControlPanel({
               </button>
               <button
                 onClick={() => {
-                  setRfSelection('OFF');
-                  logActivity('RF set to OFF');
+                  setRfOffDialogTarget('RF');
                 }}
                 className={`px-2 py-0.5 rounded transition-colors text-[10px] ${clickFeedbackClass} ${
                   rfSelection === 'OFF'
@@ -156,8 +171,7 @@ export default function ControlPanel({
               </button>
               <button
                 onClick={() => {
-                  setXRfSelection('OFF');
-                  logActivity('X RF set to OFF');
+                  setRfOffDialogTarget('X RF');
                 }}
                 className={`px-2 py-0.5 rounded transition-colors text-[10px] ${clickFeedbackClass} ${
                   xRfSelection === 'OFF'
@@ -188,7 +202,7 @@ export default function ControlPanel({
         {commanderView !== 'commander2' && (
           <div className="space-y-1.5 bg-[#173148] rounded p-2 min-h-[96px]">
             <div className="flex items-center justify-between">
-              <h3 className="text-[11px] text-[#c4d0da] text-left">Offset</h3>
+              <h3 className="text-[10px] tracking-wide uppercase text-[#8ea2b3] text-left">Offset</h3>
               <button
                 onClick={handleResetOffsets}
                 className={`px-1.5 h-4 bg-[#d0d0d0] text-[#223446] rounded text-[9px] ${clickFeedbackClass}`}
@@ -203,7 +217,7 @@ export default function ControlPanel({
               { label: 'Step', value: stepValue, setter: setStepValue },
             ].map((control) => (
               <div key={control.label} className="flex items-center gap-2">
-                <span className="text-[11px] text-[#c4d0da] w-8">{control.label}</span>
+                <span className="text-[10px] text-[#8ea2b3] w-8">{control.label}</span>
                 <div className="w-4 h-4 bg-[#d0d0d0] rounded text-center leading-4 text-[#223446] text-[10px]">
                   {isUnavailable ? '' : control.value}
                 </div>
@@ -230,6 +244,74 @@ export default function ControlPanel({
           </div>
         )}
       </div>
+      )}
+
+      {isMatrixOffDialogOpen && (
+        <div className="fixed inset-0 z-50 bg-[#06111b]/70 flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-[#1c2f42] border border-[#2e4a66] rounded-lg p-4">
+            <h3 className="text-[15px] text-[#f2f2f2] mb-2">
+              Are you sure you want to turn off the matrix?
+            </h3>
+            <p className="text-[12px] text-[#c6d2de] mb-4">
+              This will disable matrix output until it is turned on again.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setIsMatrixOffDialogOpen(false)}
+                className="px-3 py-1 rounded bg-[#2a4258] text-[#f2f2f2] text-[11px] cursor-pointer transition-all duration-150 hover:brightness-110"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setMatrixSelection('OFF');
+                  logActivity('Matrix was disabled');
+                  setIsMatrixOffDialogOpen(false);
+                }}
+                className="px-3 py-1 rounded bg-[#3ABEFF] text-[#0f1c28] text-[11px] font-medium cursor-pointer transition-all duration-150 hover:brightness-110"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {rfOffDialogTarget && (
+        <div className="fixed inset-0 z-50 bg-[#06111b]/70 flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-[#1c2f42] border border-[#2e4a66] rounded-lg p-4">
+            <h3 className="text-[15px] text-[#f2f2f2] mb-2">
+              Are you sure you want to turn off {rfOffDialogTarget.toLowerCase()}?
+            </h3>
+            <p className="text-[12px] text-[#c6d2de] mb-4">
+              This will disable {rfOffDialogTarget.toLowerCase()} output until it is
+              turned on again.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setRfOffDialogTarget(null)}
+                className="px-3 py-1 rounded bg-[#2a4258] text-[#f2f2f2] text-[11px] cursor-pointer transition-all duration-150 hover:brightness-110"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (rfOffDialogTarget === 'RF') {
+                    setRfSelection('OFF');
+                    logActivity('RF was disabled');
+                  } else {
+                    setXRfSelection('OFF');
+                    logActivity('X RF was disabled');
+                  }
+                  setRfOffDialogTarget(null);
+                }}
+                className="px-3 py-1 rounded bg-[#3ABEFF] text-[#0f1c28] text-[11px] font-medium cursor-pointer transition-all duration-150 hover:brightness-110"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

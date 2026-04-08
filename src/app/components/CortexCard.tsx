@@ -7,10 +7,17 @@ interface CortexCardProps {
   data: CortexData;
   title?: string;
   isActive?: boolean;
+  usageLabel?: string;
   onRemove: () => void;
 }
 
-export default function CortexCard({ data, title, isActive = false, onRemove }: CortexCardProps) {
+export default function CortexCard({
+  data,
+  title,
+  isActive = false,
+  usageLabel,
+  onRemove,
+}: CortexCardProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [isInterfaceModalOpen, setIsInterfaceModalOpen] = useState(false);
 
@@ -35,6 +42,17 @@ export default function CortexCard({ data, title, isActive = false, onRemove }: 
       >
         <X className="w-3.5 h-3.5 text-[#9b5f69]" />
       </button>
+      {usageLabel && (
+        <div
+          className={`absolute top-2 right-10 inline-flex items-center rounded px-2 py-0.5 text-[10px] font-semibold border ${
+            isActive
+              ? 'text-[#7cd7ff] bg-[#15354a] border-[#3ABEFF]/45'
+              : 'text-[#b7c3ce] bg-[#26323d] border-[#4f5d6a]'
+          }`}
+        >
+          {usageLabel}
+        </div>
+      )}
 
       <div className="mb-2">
         <button

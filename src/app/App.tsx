@@ -14,6 +14,7 @@ import {
   MOCK_ANTENNAS,
   MOCK_CORTEX_CARDS,
   MOCK_DEFAULT_SELECTED_ANTENNA,
+  MOCK_MISSION_NOTE_BY_ANTENNA,
 } from "../features/mockData/commanderMockData";
 
 const ANTENNAS: Antenna[] = MOCK_ANTENNAS;
@@ -38,7 +39,7 @@ function App() {
     Record<string, boolean>
   >({});
   const clickFeedbackClass =
-    "cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70";
+    "press-feedback cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70";
 
   const toggleHdrCard = (id: string) => {
     setOpenHdrIds((prev) => {
@@ -100,6 +101,11 @@ function App() {
     active: isActivePass && activeHdrIds.includes(`hdr-rtt-${idx + 1}`),
   }));
   const selectedAntennaName = selectedAntennaData?.name ?? selectedAntenna;
+  const selectedMissionNote =
+    MOCK_MISSION_NOTE_BY_ANTENNA[selectedAntenna] ??
+    "2026-04-13 Prepare_pass";
+  const selectedMissionName =
+    selectedMissionNote.split("Prepare_pass ")[1] ?? selectedMissionNote;
   const {
     effectiveActiveCortexIds,
     openCortexIds,
@@ -204,6 +210,8 @@ function App() {
     passEndsAtLabel,
     timeLeftLabel,
     countdownLabel,
+    missionNote: selectedMissionNote,
+    missionName: selectedMissionName,
     passProgress,
     isC2PreparingView,
     isC2UnavailableView,

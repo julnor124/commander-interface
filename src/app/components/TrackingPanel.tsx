@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Activity, ChevronDown, ChevronRight } from 'lucide-react';
 
 interface TrackingPanelProps {
   isActivePass?: boolean;
@@ -48,10 +48,10 @@ export default function TrackingPanel({
     return (
       <div className="bg-[#1c2f42] border border-[#2e4a66] rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-[#f2f2f2]">{title}</h3>
+          <h3 className="text-[12px] font-medium text-[#a8b8c6]">{title}</h3>
           <div className="h-3 w-20 bg-[#d9d9d9]">
             {isActivePass && !isUnavailable && (
-              <span className="block text-[9px] text-[#223446] leading-3 text-center">0.5</span>
+              <span className="block text-[10px] font-semibold text-[#223446] leading-3 text-center">0.5</span>
             )}
           </div>
         </div>
@@ -102,12 +102,18 @@ export default function TrackingPanel({
           onClick={() => setIsCollapsed((prev) => !prev)}
           className="w-full relative flex items-center justify-end text-[18px] font-medium mb-3 bg-[#213b54] rounded px-3 py-1 cursor-pointer"
         >
-          <span className="absolute inset-x-0 text-center">Real Time Tracking</span>
+          <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
+            <Activity size={14} />
+            Real Time Tracking
+          </span>
           {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
         </button>
       ) : (
         <h2 className="text-[18px] font-medium mb-3 text-center bg-[#213b54] rounded px-3 py-1">
-          Real Time Tracking
+          <span className="inline-flex items-center gap-1.5">
+            <Activity size={14} />
+            Real Time Tracking
+          </span>
         </h2>
       )}
       {commanderView === 'commander2' && isCollapsed ? null : (

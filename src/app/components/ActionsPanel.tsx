@@ -1,5 +1,5 @@
 import React, { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, ListChecks } from 'lucide-react';
 import { logActivity } from '../../features/activityLog/activityLogBus';
 
 interface ActionsPanelProps {
@@ -116,11 +116,17 @@ export default function ActionsPanel({
             onClick={() => setIsCollapsed((prev) => !prev)}
             className="w-full relative flex items-center justify-end text-[11px] text-[#e7edf2] font-medium cursor-pointer"
           >
-            <span className="absolute inset-x-0 text-center">Actions</span>
+            <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
+              <ListChecks size={13} />
+              Actions
+            </span>
             {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
           </button>
         ) : (
-          <div className="text-[11px] text-[#e7edf2] font-medium">Actions</div>
+          <div className="text-[11px] text-[#e7edf2] font-medium inline-flex items-center gap-1.5">
+            <ListChecks size={13} />
+            Actions
+          </div>
         )}
         {commanderView === 'commander1' && (
           <div className="flex items-center gap-1 text-[11px] text-[#c8d4de]">

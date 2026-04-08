@@ -1,7 +1,7 @@
 import { Antenna, CortexData } from '../commander/types';
 
 export const MOCK_DEFAULT_SELECTED_ANTENNA = 'maja';
-export const MOCK_ACTIVE_HDR_IDS = ['hdr-rtt-1', 'hdr-rtt-2'];
+export const MOCK_ACTIVE_HDR_IDS: string[] = [];
 
 export const MOCK_ANTENNAS: Antenna[] = [
   { id: 'maja', name: 'Maja', color: '#3ABEFF', status: 'inactive' },
@@ -65,5 +65,20 @@ export const MOCK_START_OFFSET_MINUTES_BY_ANTENNA: Record<string, number> = {
   amanda: 0,
   hanna: 40,
   hugo: 45,
+};
+
+export const MOCK_MISSION_NOTE_BY_ANTENNA: Record<string, string> = {
+  maja: '2026-04-13 Prepare_pass Aurora',
+  elin: '2026-04-13 Prepare_pass Borealis',
+  bella: '2026-04-13 Prepare_pass Cinder',
+  camilla: '2026-04-13 Prepare_pass Drift',
+  peter: '2026-04-13 Prepare_pass Eclipse',
+  vilma: '2026-04-13 Prepare_pass Falcon',
+  emma: '2026-04-13 Prepare_pass Glacier',
+  malin: '2026-04-13 Prepare_pass Horizon',
+  frida: '2026-04-13 Prepare_pass Ion',
+  amanda: '2026-04-13 Prepare_pass Juno',
+  hanna: '2026-04-13 Prepare_pass Kestrel',
+  hugo: '2026-04-13 Prepare_pass Lynx',
 };
 

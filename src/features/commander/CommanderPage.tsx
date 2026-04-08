@@ -56,6 +56,8 @@ export interface CommanderPageModel {
   passEndsAtLabel: string;
   timeLeftLabel: string;
   countdownLabel: string;
+  missionNote: string;
+  missionName: string;
   passProgress: number;
 
   isC2PreparingView: boolean;
@@ -98,6 +100,8 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
     passEndsAtLabel,
     timeLeftLabel,
     countdownLabel,
+    missionNote,
+    missionName,
     passProgress,
     isC2PreparingView,
     isC2UnavailableView,
@@ -136,9 +140,11 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
 
       {/* Main Layout */}
       <div
-        className={`grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)_320px] gap-4 p-4 transition-all duration-700 ${
-          isUnavailable ? 'opacity-60 saturate-0' : ''
-        }`}
+        className={`grid ${
+          isC2UnavailableView
+            ? 'grid-cols-1'
+            : 'grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)_320px]'
+        } gap-4 p-4 transition-all duration-700 ${isUnavailable ? 'opacity-60 saturate-0' : ''}`}
       >
         {/* Left Sidebar */}
         {!isC2UnavailableView && (
@@ -228,6 +234,13 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
                             data={card}
                             title={`Cortex ${getTrailingNumber(card.id)}`}
                             isActive={effectiveActiveCortexIds.includes(card.id)}
+                            usageLabel={
+                              effectiveActiveCortexIds.includes(card.id)
+                                ? isActivePass
+                                  ? 'Used this pass'
+                                  : 'Will be used'
+                                : 'Not used here'
+                            }
                             onRemove={() => setOpenCortexIds((prev) => prev.filter((id) => id !== card.id))}
                           />
                         </React.Fragment>
@@ -237,7 +250,15 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
                   <div className={`space-y-3 ${openCortexIds.length > 0 ? 'mt-6' : 'mt-0'}`}>
                     {openHdrIds.map((id) => (
                       <React.Fragment key={id}>
-                        <HDRCard title={`Hdr/Rtt ${getTrailingNumber(id)}`} />
+                        <HDRCard
+                          title={`Hdr/Rtt ${getTrailingNumber(id)}`}
+                          isActive={Boolean(hdrUnits.find((unit) => unit.id === id)?.active)}
+                          usageLabel={
+                            hdrUnits.find((unit) => unit.id === id)?.active
+                              ? 'Used this pass'
+                              : 'Not used here'
+                          }
+                        />
                       </React.Fragment>
                     ))}
                   </div>
@@ -248,25 +269,33 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
         )}
 
         {/* Center Panel */}
-        <div className="space-y-3 w-full">
-          <PassInfoCard
-            isActivePass={isActivePass}
-            isUnavailable={isUnavailable}
-            isPendingPassStart={isPendingPassStart}
-            passStartsInSeconds={Math.ceil(msUntilPassStart / 1000)}
-            passStartsAtLabel={passStartsAtLabel}
-            passEndsAtLabel={passEndsAtLabel}
-            timeLeftLabel={timeLeftLabel}
-            countdownLabel={countdownLabel}
-            commanderView={activeCommanderView}
-            forceExpanded={isC2PreparingView || isC2UnavailableView || isC2FocusedPassView || isC2DefaultCountdownView}
-            forceCollapsed={false}
-          />
+        <div
+          className={`space-y-3 w-full ${
+            isC2UnavailableView ? 'flex flex-col items-center justify-center min-h-[68vh]' : ''
+          }`}
+        >
+          <div className={isC2UnavailableView ? 'w-full max-w-[520px]' : ''}>
+            <PassInfoCard
+              isActivePass={isActivePass}
+              isUnavailable={isUnavailable}
+              isPendingPassStart={isPendingPassStart}
+              passStartsInSeconds={Math.ceil(msUntilPassStart / 1000)}
+              passStartsAtLabel={passStartsAtLabel}
+              passEndsAtLabel={passEndsAtLabel}
+              timeLeftLabel={timeLeftLabel}
+              countdownLabel={countdownLabel}
+            missionNote={missionNote}
+              commanderView={activeCommanderView}
+              forceExpanded={isC2PreparingView || isC2UnavailableView || isC2FocusedPassView || isC2DefaultCountdownView}
+              forceCollapsed={false}
+            />
+          </div>
 
           {!isC2UnavailableView && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <AntennaStatusPanel
                 isUnavailable={isUnavailable}
+                missionName={missionName}
                 commanderView={activeCommanderView}
                 forceExpanded={isC2PreparingView || isC2FocusedPassView || isC2DefaultCountdownView}
                 forceCollapsed={false}

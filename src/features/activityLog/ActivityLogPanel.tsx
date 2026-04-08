@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, List } from 'lucide-react';
 import { ACTIVITY_LOG_EVENT, ActivityEntry } from './activityLogBus';
 
 interface ActivityLogPanelProps {
@@ -18,10 +18,13 @@ export default function ActivityLogPanel({
   forceExpanded = false,
 }: ActivityLogPanelProps) {
   const [entries, setEntries] = useState<ActivityEntry[]>([]);
+  const [isLogUpdated, setIsLogUpdated] = useState(false);
   const [viewMode, setViewMode] = useState<'antenna' | 'all'>('antenna');
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const logContainerRef = useRef<HTMLDivElement | null>(null);
+  const pressFeedbackClass =
+    'press-feedback cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70';
 
   useEffect(() => {
     if (commanderView === 'commander2') {
@@ -46,11 +49,18 @@ export default function ActivityLogPanel({
       const payload = custom.detail;
       if (!payload?.message) return;
       setEntries((prev) => [...prev, payload].slice(-50));
+      setIsLogUpdated(true);
     };
 
     window.addEventListener(ACTIVITY_LOG_EVENT, handler);
     return () => window.removeEventListener(ACTIVITY_LOG_EVENT, handler);
   }, []);
+
+  useEffect(() => {
+    if (!isLogUpdated) return;
+    const timer = window.setTimeout(() => setIsLogUpdated(false), 550);
+    return () => window.clearTimeout(timer);
+  }, [isLogUpdated]);
 
   useEffect(() => {
     if (!logContainerRef.current) return;
@@ -76,6 +86,20 @@ export default function ActivityLogPanel({
     setIsResetDialogOpen(false);
   };
 
+  const getEntryToneClass = (message: string) => {
+    const normalized = message.toLowerCase();
+    if (normalized.includes('pass started') || normalized.includes('started pass')) {
+      return 'text-[#74cfff]';
+    }
+    if (normalized.includes('unavailable') || normalized.includes('no available')) {
+      return 'text-[#f4c65d]';
+    }
+    if (normalized.includes('pass ended') || normalized.includes('ended')) {
+      return 'text-[#aab8c6]';
+    }
+    return 'text-[#aab8c6]';
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -84,23 +108,35 @@ export default function ActivityLogPanel({
             onClick={() => setIsCollapsed((prev) => !prev)}
             className="relative flex items-center justify-end w-full text-lg font-medium bg-[#213b54] rounded px-3 py-1 cursor-pointer"
           >
-            <span className="absolute inset-x-0 text-center">Activity log</span>
+            <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
+              <List size={14} />
+              Activity log
+            </span>
             {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
           </button>
         ) : (
-          <h2 className="text-lg font-medium">Activity log</h2>
+          <h2
+            className={`text-base font-medium transition-colors duration-300 ${
+              isLogUpdated ? 'text-[#7cd7ff]' : 'text-[#9fb0bf]'
+            }`}
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <List size={14} />
+              Activity log
+            </span>
+          </h2>
         )}
         {commanderView === 'commander1' && (
           <div className="flex items-center gap-2">
             <button
               onClick={() => setViewMode((prev) => (prev === 'antenna' ? 'all' : 'antenna'))}
-              className="px-2 py-0.5 bg-[#d0d0d0] text-[#223446] rounded text-[10px] cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70"
+              className={`px-2 py-0.5 bg-[#d0d0d0] text-[#223446] rounded text-[10px] ${pressFeedbackClass}`}
             >
               {viewMode === 'antenna' ? 'Show all antennas' : 'Show this antenna'}
             </button>
             <button
               onClick={() => setIsResetDialogOpen(true)}
-              className="px-2 py-0.5 bg-[#d0d0d0] text-[#223446] rounded text-[10px] cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70"
+              className={`px-2 py-0.5 bg-[#d0d0d0] text-[#223446] rounded text-[10px] ${pressFeedbackClass}`}
             >
               Reset
             </button>
@@ -113,38 +149,47 @@ export default function ActivityLogPanel({
             <div className="flex items-center gap-2 mb-2">
               <button
                 onClick={() => setViewMode((prev) => (prev === 'antenna' ? 'all' : 'antenna'))}
-                className="px-2 py-0.5 bg-[#d0d0d0] text-[#223446] rounded text-[10px] cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70"
+                className={`px-2 py-0.5 bg-[#d0d0d0] text-[#223446] rounded text-[10px] ${pressFeedbackClass}`}
               >
                 {viewMode === 'antenna' ? 'Show all antennas' : 'Show this antenna'}
               </button>
               <button
                 onClick={() => setIsResetDialogOpen(true)}
-                className="px-2 py-0.5 bg-[#d0d0d0] text-[#223446] rounded text-[10px] cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70"
+                className={`px-2 py-0.5 bg-[#d0d0d0] text-[#223446] rounded text-[10px] ${pressFeedbackClass}`}
               >
                 Reset
               </button>
             </div>
           )}
-          <p className="text-[11px] text-[#9aa9b8] -mt-2 mb-2">
+          <p className="text-[10px] text-[#7f92a3] -mt-2 mb-2">
             Showing: {viewMode === 'antenna' ? `Antenna ${selectedAntennaName}` : 'All antennas'}
           </p>
           <div
             ref={logContainerRef}
-            className="bg-[#1c2f42] border border-[#2e4a66] rounded-lg h-[300px] overflow-y-auto"
+            className={`bg-[#162535] border rounded-lg h-[300px] overflow-y-auto transition-all duration-300 ${
+              isLogUpdated
+                ? 'border-[#3ABEFF] shadow-[0_0_0_1px_rgba(58,190,255,0.35),0_0_14px_rgba(58,190,255,0.25)]'
+                : 'border-[#243b52]'
+            }`}
           >
             <div className="p-4 space-y-2">
               {filteredEntries.length === 0 && (
-                <p className="text-sm text-[#f2f2f2] leading-relaxed">
+                <p className="text-xs text-[#9aabbb] leading-relaxed">
                   No activity yet in this view.
                 </p>
               )}
               {filteredEntries.map((entry, index) => (
-                <div key={`${entry.timestamp}-${index}`} className="text-xs text-[#d9dfe5]">
-                  <span className="text-[#9aa9b8] mr-2">[{entry.timestamp}]</span>
+                <div
+                  key={`${entry.timestamp}-${index}`}
+                  className={`text-[11px] text-[#aab8c6] transition-colors duration-300 ${
+                    isLogUpdated && index === filteredEntries.length - 1 ? 'text-[#d8ecf9]' : ''
+                  }`}
+                >
+                  <span className="text-[#74889b] mr-2">[{entry.timestamp}]</span>
                   {viewMode === 'all' && (
-                    <span className="text-[#7fb7d2] mr-2">{entry.antennaName ?? 'Unknown'}:</span>
+                    <span className="text-[#87a8bf] mr-2">{entry.antennaName ?? 'Unknown'}:</span>
                   )}
-                  <span>{entry.message}</span>
+                  <span className={getEntryToneClass(entry.message)}>{entry.message}</span>
                 </div>
               ))}
             </div>
