@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import AntennaSelector from '../../app/components/AntennaSelector';
 import CortexCard from '../../app/components/CortexCard';
 import HDRCard from '../../app/components/HDRCard';
@@ -109,6 +109,7 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
     isC2DefaultCountdownView,
     isC2PreparingFinalWindow,
   } = model;
+  const hdrUnitsById = new Map(hdrUnits.map((unit) => [unit.id, unit]));
 
   return (
     <div className="min-h-screen bg-[#0f1c28] text-white">
@@ -153,13 +154,13 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
               {activeCommanderView === 'commander2' ? (
                 <button
                   onClick={() => setIsLeftPanelCollapsedC2((prev) => !prev)}
-                  className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-1 cursor-pointer"
+                  className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-2 cursor-pointer"
                 >
                   <span className="absolute inset-x-0 text-center">Cortex and Hdr/Rtt</span>
-                  {isLeftPanelCollapsedC2 ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                  {isLeftPanelCollapsedC2 ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
                 </button>
               ) : (
-                <h2 className="text-[16px] font-medium mb-2 text-center bg-[#213b54] rounded px-3 py-1">
+                <h2 className="text-[18px] font-medium mb-3 text-center bg-[#213b54] rounded px-3 py-1">
                   Cortex and Hdr/Rtt
                 </h2>
               )}
@@ -168,18 +169,18 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
                 <>
                   <div className="grid grid-cols-2 gap-2 mb-2">
                     <button
-                      className={`w-full flex items-center justify-between text-[13px] font-medium bg-[#1c2f42] px-2 py-1.5 rounded-md border border-[#2e4a66] ${clickFeedbackClass}`}
+                      className={`w-full flex items-center justify-between text-[16px] font-medium bg-[#1c2f42] px-2.5 py-2 rounded-md border border-[#2e4a66] ${clickFeedbackClass}`}
                       onClick={() => setIsCortexDropdownOpen((prev) => !prev)}
                     >
                       <span>Cortex</span>
-                      {isCortexDropdownOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                      {isCortexDropdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>
                     <button
-                      className={`w-full flex items-center justify-between text-[13px] font-medium bg-[#1c2f42] px-2 py-1.5 rounded-md border border-[#2e4a66] ${clickFeedbackClass}`}
+                      className={`w-full flex items-center justify-between text-[16px] font-medium bg-[#1c2f42] px-2.5 py-2 rounded-md border border-[#2e4a66] ${clickFeedbackClass}`}
                       onClick={() => setIsHdrDropdownOpen((prev) => !prev)}
                     >
                       <span>Hdr/Rtt</span>
-                      {isHdrDropdownOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                      {isHdrDropdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>
                   </div>
 
@@ -250,15 +251,17 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
                   <div className={`space-y-3 ${openCortexIds.length > 0 ? 'mt-6' : 'mt-0'}`}>
                     {openHdrIds.map((id) => (
                       <React.Fragment key={id}>
-                        <HDRCard
-                          title={`Hdr/Rtt ${getTrailingNumber(id)}`}
-                          isActive={Boolean(hdrUnits.find((unit) => unit.id === id)?.active)}
-                          usageLabel={
-                            hdrUnits.find((unit) => unit.id === id)?.active
-                              ? 'Used this pass'
-                              : 'Not used here'
-                          }
-                        />
+                        {(() => {
+                          const hdrUnit = hdrUnitsById.get(id);
+                          if (!hdrUnit) return null;
+                          return (
+                            <HDRCard
+                              title={`Hdr/Rtt ${getTrailingNumber(id)}`}
+                              isActive={hdrUnit.active}
+                              usageLabel={hdrUnit.active ? 'Used this pass' : 'Not used here'}
+                            />
+                          );
+                        })()}
                       </React.Fragment>
                     ))}
                   </div>
@@ -284,7 +287,7 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
               passEndsAtLabel={passEndsAtLabel}
               timeLeftLabel={timeLeftLabel}
               countdownLabel={countdownLabel}
-            missionNote={missionNote}
+              missionNote={missionNote}
               commanderView={activeCommanderView}
               forceExpanded={isC2PreparingView || isC2UnavailableView || isC2FocusedPassView || isC2DefaultCountdownView}
               forceCollapsed={false}

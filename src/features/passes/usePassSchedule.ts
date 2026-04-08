@@ -48,7 +48,6 @@ function createInitialSchedule(antennas: AntennaLike[]): Record<string, PassWind
 export function usePassSchedule(params: {
   antennas: AntennaLike[];
   selectedAntennaId: string;
-  isUnavailable: boolean;
 }) {
   const { antennas, selectedAntennaId } = params;
   const [passScheduleByAntenna, setPassScheduleByAntenna] = useState<Record<string, PassWindow>>(() =>
@@ -130,7 +129,6 @@ export function usePassSchedule(params: {
   );
 
   return {
-    currentTimeMs,
     passScheduleByAntenna,
     selectedPassWindow,
     hasScheduledPass,

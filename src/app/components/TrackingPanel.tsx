@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, ChevronDown, ChevronRight } from 'lucide-react';
+import { Activity, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface TrackingPanelProps {
   isActivePass?: boolean;
@@ -100,13 +100,13 @@ export default function TrackingPanel({
       {commanderView === 'commander2' ? (
         <button
           onClick={() => setIsCollapsed((prev) => !prev)}
-          className="w-full relative flex items-center justify-end text-[18px] font-medium mb-3 bg-[#213b54] rounded px-3 py-1 cursor-pointer"
+          className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-2 cursor-pointer"
         >
           <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
-            <Activity size={14} />
+            <Activity size={16} />
             Real Time Tracking
           </span>
-          {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+          {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
         </button>
       ) : (
         <h2 className="text-[18px] font-medium mb-3 text-center bg-[#213b54] rounded px-3 py-1">

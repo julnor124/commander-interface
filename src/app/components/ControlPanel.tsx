@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { ChevronDown, ChevronRight, SlidersHorizontal } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
 import { logActivity } from '../../features/activityLog/activityLogBus';
+import { useOffsetControls } from '../../features/offsets/useOffsetControls';
+import { usePanelCollapse } from '../../features/ui/usePanelCollapse';
+import ConfirmDialog from './ConfirmDialog';
 
 interface ControlPanelProps {
   isUnavailable?: boolean;
@@ -18,31 +21,15 @@ export default function ControlPanel({
   const [matrixSelection, setMatrixSelection] = useState<'ON' | 'OFF'>('ON');
   const [rfSelection, setRfSelection] = useState<'ON' | 'OFF'>('OFF');
   const [xRfSelection, setXRfSelection] = useState<'ON' | 'OFF'>('OFF');
-  const [timeValue, setTimeValue] = useState(0);
-  const [elValue, setElValue] = useState(0);
-  const [stepValue, setStepValue] = useState(0);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isCollapsed, setIsCollapsed } = usePanelCollapse({
+    commanderView,
+    forceCollapsed,
+    forceExpanded,
+  });
   const [isMatrixOffDialogOpen, setIsMatrixOffDialogOpen] = useState(false);
   const [rfOffDialogTarget, setRfOffDialogTarget] = useState<null | 'RF' | 'X RF'>(
     null,
   );
-
-  useEffect(() => {
-    if (commanderView === 'commander2') {
-      setIsCollapsed(true);
-    }
-  }, [commanderView]);
-
-  useEffect(() => {
-    if (forceCollapsed) {
-      setIsCollapsed(true);
-    }
-  }, [forceCollapsed]);
-  useEffect(() => {
-    if (forceExpanded) {
-      setIsCollapsed(false);
-    }
-  }, [forceExpanded]);
 
   const matrixOptions = [
     { id: 'ON', label: 'ON' },
@@ -51,13 +38,11 @@ export default function ControlPanel({
   const clickFeedbackClass =
     'press-feedback cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70';
 
-  const handleIncrement = (setter: React.Dispatch<React.SetStateAction<number>>) => {
-    setter((prev) => prev + 1);
-  };
-
-  const handleDecrement = (setter: React.Dispatch<React.SetStateAction<number>>) => {
-    setter((prev) => Math.max(0, prev - 1));
-  };
+  const { controls: offsetControls, increment, decrement, reset } = useOffsetControls({
+    onIncrement: (key) => logActivity(`Offset ${key} increased`),
+    onDecrement: (key) => logActivity(`Offset ${key} decreased`),
+    onReset: () => logActivity('Offsets reset to 0'),
+  });
 
   const handleResetOffsets = () => {
     const shouldReset = window.confirm('Are you sure you want to reset?');
@@ -66,10 +51,7 @@ export default function ControlPanel({
       return;
     }
 
-    setTimeValue(0);
-    setElValue(0);
-    setStepValue(0);
-    logActivity('Offsets reset to 0');
+    reset();
   };
 
   return (
@@ -77,13 +59,13 @@ export default function ControlPanel({
       {commanderView === 'commander2' ? (
         <button
           onClick={() => setIsCollapsed((prev) => !prev)}
-          className="w-full relative flex items-center justify-end text-[14px] font-medium mb-2 bg-[#213b54] rounded px-3 py-1.5 cursor-pointer"
+          className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-1.5 cursor-pointer"
         >
           <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
-            <SlidersHorizontal size={14} />
+            <SlidersHorizontal size={16} />
             Control
           </span>
-          {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+          {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
         </button>
       ) : (
         <h2 className="text-[14px] font-medium mb-2 bg-[#213b54] rounded px-3 py-1.5 text-center">
@@ -185,13 +167,13 @@ export default function ControlPanel({
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => logActivity('RF Calibrate pressed')}
-                className={`w-full px-2 py-0.5 bg-[#d0d0d0] text-[#223446] rounded text-[10px] ${clickFeedbackClass}`}
+                className={`w-full px-2 py-0.5 bg-[#3a5268] text-[#e7edf2] rounded text-[10px] ${clickFeedbackClass}`}
               >
                 Calibrate
               </button>
               <button
                 onClick={() => logActivity('RF Calibrate Xb pressed')}
-                className={`w-full px-2 py-0.5 bg-[#d0d0d0] text-[#223446] rounded text-[10px] ${clickFeedbackClass}`}
+                className={`w-full px-2 py-0.5 bg-[#3a5268] text-[#e7edf2] rounded text-[10px] ${clickFeedbackClass}`}
               >
                 Calibrate Xb
               </button>
@@ -205,17 +187,12 @@ export default function ControlPanel({
               <h3 className="text-[10px] tracking-wide uppercase text-[#8ea2b3] text-left">Offset</h3>
               <button
                 onClick={handleResetOffsets}
-                className={`px-1.5 h-4 bg-[#d0d0d0] text-[#223446] rounded text-[9px] ${clickFeedbackClass}`}
+                className={`px-1.5 h-4 bg-[#3a5268] text-[#e7edf2] rounded text-[9px] ${clickFeedbackClass}`}
               >
                 Reset
               </button>
             </div>
-            {[
-              { label: 'Time', value: timeValue, setter: setTimeValue },
-              { label: 'El', value: elValue, setter: setElValue },
-              { label: 'Az', value: 0, setter: setElValue },
-              { label: 'Step', value: stepValue, setter: setStepValue },
-            ].map((control) => (
+            {offsetControls.map((control) => (
               <div key={control.label} className="flex items-center gap-2">
                 <span className="text-[10px] text-[#8ea2b3] w-8">{control.label}</span>
                 <div className="w-4 h-4 bg-[#d0d0d0] rounded text-center leading-4 text-[#223446] text-[10px]">
@@ -223,19 +200,17 @@ export default function ControlPanel({
                 </div>
                 <button
                   onClick={() => {
-                    handleDecrement(control.setter);
-                    logActivity(`Offset ${control.label} decreased`);
+                    decrement(control.label);
                   }}
-                  className={`w-4 h-4 bg-[#d0d0d0] text-[#223446] rounded text-[10px] leading-4 ${clickFeedbackClass}`}
+                  className={`w-4 h-4 bg-[#3a5268] text-[#e7edf2] rounded text-[10px] leading-4 ${clickFeedbackClass}`}
                 >
                   -
                 </button>
                 <button
                   onClick={() => {
-                    handleIncrement(control.setter);
-                    logActivity(`Offset ${control.label} increased`);
+                    increment(control.label);
                   }}
-                  className={`w-4 h-4 bg-[#d0d0d0] text-[#223446] rounded text-[10px] leading-4 ${clickFeedbackClass}`}
+                  className={`w-4 h-4 bg-[#3a5268] text-[#e7edf2] rounded text-[10px] leading-4 ${clickFeedbackClass}`}
                 >
                   +
                 </button>
@@ -246,73 +221,34 @@ export default function ControlPanel({
       </div>
       )}
 
-      {isMatrixOffDialogOpen && (
-        <div className="fixed inset-0 z-50 bg-[#06111b]/70 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#1c2f42] border border-[#2e4a66] rounded-lg p-4">
-            <h3 className="text-[15px] text-[#f2f2f2] mb-2">
-              Are you sure you want to turn off the matrix?
-            </h3>
-            <p className="text-[12px] text-[#c6d2de] mb-4">
-              This will disable matrix output until it is turned on again.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setIsMatrixOffDialogOpen(false)}
-                className="px-3 py-1 rounded bg-[#2a4258] text-[#f2f2f2] text-[11px] cursor-pointer transition-all duration-150 hover:brightness-110"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  setMatrixSelection('OFF');
-                  logActivity('Matrix was disabled');
-                  setIsMatrixOffDialogOpen(false);
-                }}
-                className="px-3 py-1 rounded bg-[#3ABEFF] text-[#0f1c28] text-[11px] font-medium cursor-pointer transition-all duration-150 hover:brightness-110"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={isMatrixOffDialogOpen}
+        title="Are you sure you want to turn off the matrix?"
+        description="This will disable matrix output until it is turned on again."
+        onCancel={() => setIsMatrixOffDialogOpen(false)}
+        onConfirm={() => {
+          setMatrixSelection('OFF');
+          logActivity('Matrix was disabled');
+          setIsMatrixOffDialogOpen(false);
+        }}
+      />
 
-      {rfOffDialogTarget && (
-        <div className="fixed inset-0 z-50 bg-[#06111b]/70 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#1c2f42] border border-[#2e4a66] rounded-lg p-4">
-            <h3 className="text-[15px] text-[#f2f2f2] mb-2">
-              Are you sure you want to turn off {rfOffDialogTarget.toLowerCase()}?
-            </h3>
-            <p className="text-[12px] text-[#c6d2de] mb-4">
-              This will disable {rfOffDialogTarget.toLowerCase()} output until it is
-              turned on again.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setRfOffDialogTarget(null)}
-                className="px-3 py-1 rounded bg-[#2a4258] text-[#f2f2f2] text-[11px] cursor-pointer transition-all duration-150 hover:brightness-110"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  if (rfOffDialogTarget === 'RF') {
-                    setRfSelection('OFF');
-                    logActivity('RF was disabled');
-                  } else {
-                    setXRfSelection('OFF');
-                    logActivity('X RF was disabled');
-                  }
-                  setRfOffDialogTarget(null);
-                }}
-                className="px-3 py-1 rounded bg-[#3ABEFF] text-[#0f1c28] text-[11px] font-medium cursor-pointer transition-all duration-150 hover:brightness-110"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={Boolean(rfOffDialogTarget)}
+        title={`Are you sure you want to turn off ${rfOffDialogTarget?.toLowerCase() ?? ''}?`}
+        description={`This will disable ${rfOffDialogTarget?.toLowerCase() ?? ''} output until it is turned on again.`}
+        onCancel={() => setRfOffDialogTarget(null)}
+        onConfirm={() => {
+          if (rfOffDialogTarget === 'RF') {
+            setRfSelection('OFF');
+            logActivity('RF was disabled');
+          } else if (rfOffDialogTarget === 'X RF') {
+            setXRfSelection('OFF');
+            logActivity('X RF was disabled');
+          }
+          setRfOffDialogTarget(null);
+        }}
+      />
     </div>
   );
 }

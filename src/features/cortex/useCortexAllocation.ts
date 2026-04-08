@@ -85,8 +85,6 @@ export function useCortexAllocation(params: {
   };
 
   return {
-    assignedCortexByAntenna,
-    activeCortexIds,
     effectiveActiveCortexIds,
     openCortexIds,
     setOpenCortexIds,

@@ -14,6 +14,7 @@ import {
   MOCK_ANTENNAS,
   MOCK_CORTEX_CARDS,
   MOCK_DEFAULT_SELECTED_ANTENNA,
+  MOCK_HDR_UNITS_BASE,
   MOCK_MISSION_NOTE_BY_ANTENNA,
 } from "../features/mockData/commanderMockData";
 
@@ -58,7 +59,6 @@ function App() {
   );
   const isUnavailable = selectedAntennaData?.color === "#6B7C8F";
   const {
-    currentTimeMs,
     hasScheduledPass,
     msUntilPassStart,
     isPendingPassStart,
@@ -73,7 +73,6 @@ function App() {
   } = usePassSchedule({
     antennas: ANTENNAS,
     selectedAntennaId: selectedAntenna,
-    isUnavailable,
   });
   const isC2ActiveView = activeCommanderView === "commander2" && isActivePass;
   const isC2PreparingView =
@@ -95,10 +94,9 @@ function App() {
       ? `${selectedAntenna}-${isC2PreparingView ? "preparing" : isC2UnavailableView ? "unavailable" : isC2ActiveView ? "active" : "idle"}`
       : "commander1";
   const isCortexEngaged = isActivePass || isPreparingFinalWindow;
-  const hdrUnits = Array.from({ length: 12 }, (_, idx) => ({
-    id: `hdr-rtt-${idx + 1}`,
-    label: `Hdr/Rtt ${idx + 1}`,
-    active: isActivePass && activeHdrIds.includes(`hdr-rtt-${idx + 1}`),
+  const hdrUnits = MOCK_HDR_UNITS_BASE.map((unit) => ({
+    ...unit,
+    active: isActivePass && activeHdrIds.includes(unit.id),
   }));
   const selectedAntennaName = selectedAntennaData?.name ?? selectedAntenna;
   const selectedMissionNote =

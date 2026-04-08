@@ -23,9 +23,9 @@ export default function HDRCard({
     <div className="bg-[#1c2f42] border border-[#2e4a66] rounded-2xl p-3 lg:p-4 relative">
       <button
         onClick={() => setIsVisible(false)}
-        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#d0d0d0] hover:bg-[#d9d9d9] cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70 flex items-center justify-center"
+        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#3a5268] hover:bg-[#4a637a] cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70 flex items-center justify-center"
       >
-        <X className="w-4 h-4 text-[#b57a84]" />
+        <X className="w-4 h-4 text-[#e7edf2]" />
       </button>
       {usageLabel && (
         <div

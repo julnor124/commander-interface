@@ -2,6 +2,10 @@ import { Antenna, CortexData } from '../commander/types';
 
 export const MOCK_DEFAULT_SELECTED_ANTENNA = 'maja';
 export const MOCK_ACTIVE_HDR_IDS: string[] = [];
+export const MOCK_HDR_UNITS_BASE = Array.from({ length: 12 }, (_, idx) => ({
+  id: `hdr-rtt-${idx + 1}`,
+  label: `Hdr/Rtt ${idx + 1}`,
+}));
 
 export const MOCK_ANTENNAS: Antenna[] = [
   { id: 'maja', name: 'Maja', color: '#3ABEFF', status: 'inactive' },

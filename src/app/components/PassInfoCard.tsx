@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronDown, ChevronRight, Clock3 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock3 } from 'lucide-react';
 
 interface PassInfoCardProps {
   isActivePass?: boolean;
@@ -70,9 +70,9 @@ export default function PassInfoCard({
     ? 'text-[#f4c65d]'
     : isActivePass
       ? 'px-2 py-0.5 rounded bg-[#0e3147] text-[#7cd7ff] drop-shadow-[0_0_6px_rgba(58,190,255,0.28)]'
-      : `text-[#B9C5D1] ${
+      : `text-[#f6d46b] ${
           isFinalCountdownAlert
-            ? 'font-extrabold animate-pulse [animation-duration:300ms] drop-shadow-[0_0_8px_rgba(185,197,209,0.45)]'
+            ? 'font-extrabold animate-pulse [animation-duration:300ms] drop-shadow-[0_0_8px_rgba(246,212,107,0.55)]'
             : ''
         }`;
 
@@ -94,13 +94,13 @@ export default function PassInfoCard({
             if (isLockedOpen) return;
             setIsCollapsed((prev) => !prev);
           }}
-          className="w-full relative flex items-center justify-end text-[18px] font-medium mb-3 bg-[#213b54] rounded px-3 py-1 cursor-pointer"
+          className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-2 cursor-pointer"
         >
           <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
-            <Clock3 size={14} />
+            <Clock3 size={16} />
             Pass Information
           </span>
-          {isCollapsed && !isLockedOpen ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+          {isCollapsed && !isLockedOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
         </button>
       ) : (
         <h2 className="text-[18px] font-medium mb-3 text-center bg-[#213b54] rounded px-3 py-1">

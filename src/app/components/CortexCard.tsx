@@ -38,9 +38,9 @@ export default function CortexCard({
       <button
         onClick={handleRemove}
         aria-label="Remove cortex card"
-        className="absolute top-2 right-2 w-6 h-6 rounded-full border border-[#8ca1b5] bg-[#e8edf2] hover:bg-[#f2f5f8] hover:border-[#b9c6d3] cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70 flex items-center justify-center"
+        className="absolute top-2 right-2 w-6 h-6 rounded-full border border-[#4f6a82] bg-[#3a5268] hover:bg-[#4a637a] hover:border-[#64829d] cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70 flex items-center justify-center"
       >
-        <X className="w-3.5 h-3.5 text-[#9b5f69]" />
+        <X className="w-3.5 h-3.5 text-[#e7edf2]" />
       </button>
       {usageLabel && (
         <div
