@@ -1,5 +1,6 @@
+import React from 'react';
 import AntennaSelector from './AntennaSelector';
-import { Antenna } from '../App';
+import { Antenna } from '../../features/commander/types';
 
 interface Commander2PageProps {
   antennas: Antenna[];

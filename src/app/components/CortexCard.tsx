@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
-import { CortexData } from '../App';
+import { CortexData } from '../../features/commander/types';
 
 interface CortexCardProps {
   data: CortexData;

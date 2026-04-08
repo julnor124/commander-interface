@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { logActivity } from '../utils/activityLog';
+import { logActivity } from '../../features/activityLog/activityLogBus';
 
 interface ActionsPanelProps {
   isUnavailable?: boolean;
@@ -89,11 +89,11 @@ export default function ActionsPanel({
   const [activeActionTab, setActiveActionTab] = useState<string>(sections[0].title);
   const activeSection = sections.find((section) => section.title === activeActionTab);
   const activeMenuOptions = menuOptions[activeActionTab as keyof typeof menuOptions];
-  const handleOffsetIncrement = (setter: React.Dispatch<React.SetStateAction<number>>, label: string) => {
+  const handleOffsetIncrement = (setter: Dispatch<SetStateAction<number>>, label: string) => {
     setter((prev) => prev + 1);
     logActivity(`Offset ${label} increased`);
   };
-  const handleOffsetDecrement = (setter: React.Dispatch<React.SetStateAction<number>>, label: string) => {
+  const handleOffsetDecrement = (setter: Dispatch<SetStateAction<number>>, label: string) => {
     setter((prev) => Math.max(0, prev - 1));
     logActivity(`Offset ${label} decreased`);
   };

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { logActivity } from '../utils/activityLog';
+import { logActivity } from '../../features/activityLog/activityLogBus';
 
 interface ControlPanelProps {
   isUnavailable?: boolean;

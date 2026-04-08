@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
 const TOP_LABELS = ['BSI', 'BSQ', 'PLL', 'ViT', 'Fs', 'Avai', 'CTX', 'ACQ'];

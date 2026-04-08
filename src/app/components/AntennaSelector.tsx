@@ -1,4 +1,5 @@
-import { Antenna } from '../App';
+import React from 'react';
+import { Antenna } from '../../features/commander/types';
 
 interface AntennaSelectorProps {
   antennas: Antenna[];
