@@ -11,6 +11,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.100.5",
     "lucide-react": "0.487.0",
     "motion": "12.23.24",
     "react": "18.3.1",

@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp, List } from 'lucide-react';
-import { ACTIVITY_LOG_EVENT, ActivityEntry } from './activityLogBus';
-import ConfirmDialog from '../../app/components/ConfirmDialog';
-import { usePanelCollapse } from '../ui/usePanelCollapse';
+import ConfirmDialog from '../../shared/components/ConfirmDialog';
+import { usePanelCollapse } from '../ui/hooks/usePanelCollapse';
+import { useActivityLogEntries } from './hooks/useActivityLogEntries';
+import { useActivityLogFilters } from './hooks/useActivityLogFilters';
 
 interface ActivityLogPanelProps {
   selectedAntennaId: string;
@@ -19,11 +20,23 @@ export default function ActivityLogPanel({
   forceCollapsed = false,
   forceExpanded = false,
 }: ActivityLogPanelProps) {
-  const [entries, setEntries] = useState<ActivityEntry[]>([]);
-  const [isLogUpdated, setIsLogUpdated] = useState(false);
-  const [viewMode, setViewMode] = useState<'antenna' | 'all'>('antenna');
-  const [logTab, setLogTab] = useState<'activity' | 'alarms'>('activity');
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const { entries, isLogUpdated, resetEntries } = useActivityLogEntries(selectedAntennaId);
+  const {
+    viewMode,
+    setViewMode,
+    logTab,
+    setLogTab,
+    filteredEntries,
+    resetTargetLabel,
+    emptyStateLabel,
+    scopeBadgeLabel,
+    scopeHelperLabel,
+  } = useActivityLogFilters({
+    entries,
+    selectedAntennaId,
+    selectedAntennaName,
+  });
   const { isCollapsed, setIsCollapsed } = usePanelCollapse({
     forceCollapsed,
     forceExpanded,
@@ -33,49 +46,12 @@ export default function ActivityLogPanel({
     'press-feedback cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70';
 
   useEffect(() => {
-    const handler = (event: Event) => {
-      const custom = event as CustomEvent<ActivityEntry>;
-      const payload = custom.detail;
-      if (!payload?.message) return;
-      setEntries((prev) => [...prev, payload].slice(-50));
-      setIsLogUpdated(true);
-    };
-
-    window.addEventListener(ACTIVITY_LOG_EVENT, handler);
-    return () => window.removeEventListener(ACTIVITY_LOG_EVENT, handler);
-  }, []);
-
-  useEffect(() => {
-    if (!isLogUpdated) return;
-    const timer = window.setTimeout(() => setIsLogUpdated(false), 550);
-    return () => window.clearTimeout(timer);
-  }, [isLogUpdated]);
-
-  useEffect(() => {
     if (!logContainerRef.current) return;
     logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
   }, [entries, viewMode, selectedAntennaId]);
 
-  const filteredByAntenna =
-    viewMode === 'antenna'
-      ? entries.filter((entry) => entry.antennaId === selectedAntennaId)
-      : entries;
-
-  const filteredEntries = filteredByAntenna.filter((entry) =>
-    logTab === 'alarms' ? entry.type === 'alarm' : entry.type !== 'alarm',
-  );
-
-  const resetTargetLabel =
-    viewMode === 'antenna'
-      ? `${logTab === 'alarms' ? 'alarms' : 'activity'} for antenna ${selectedAntennaName}`
-      : `${logTab === 'alarms' ? 'alarms' : 'activity'} for all antennas`;
-
   const handleConfirmReset = () => {
-    if (viewMode === 'antenna') {
-      setEntries((prev) => prev.filter((entry) => entry.antennaId !== selectedAntennaId));
-    } else {
-      setEntries([]);
-    }
+    resetEntries(viewMode);
     setIsResetDialogOpen(false);
   };
 
@@ -89,13 +65,6 @@ export default function ActivityLogPanel({
     }
     return 'text-[#aab8c6]';
   };
-
-  const getEmptyStateLabel = () =>
-    logTab === 'alarms' ? 'No alarms yet in this view.' : 'No activity yet in this view.';
-  const scopeBadgeLabel =
-    viewMode === 'antenna' ? `THIS ANTENNA: ${selectedAntennaName.toUpperCase()}` : 'ALL ANTENNAS';
-  const scopeHelperLabel =
-    viewMode === 'antenna' ? 'Only current antenna events' : 'Combined feed from every antenna';
 
   return (
     <div className="mt-2">
@@ -168,7 +137,7 @@ export default function ActivityLogPanel({
             <div className="p-4 space-y-2">
               {filteredEntries.length === 0 && (
                 <p className="text-xs text-[#9aabbb] leading-relaxed">
-                  {getEmptyStateLabel()}
+                  {emptyStateLabel}
                 </p>
               )}
               {filteredEntries.map((entry, index) => (
