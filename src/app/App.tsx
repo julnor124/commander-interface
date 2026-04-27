@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import {
   logActivity,
+  logAlarm,
   setActivityAntennaContext,
 } from "../features/activityLog/activityLogBus";
-import { CommanderPageModel } from "../features/commander/CommanderPage";
-import Commander1Page from "../features/commander1/Commander1Page";
-import Commander2Page from "../features/commander2/Commander2Page";
+import CommanderPage, { CommanderPageModel } from "../features/commander/CommanderPage";
 import { Antenna } from "../features/commander/types";
 import { usePassSchedule } from "../features/passes/usePassSchedule";
 import { useCortexAllocation } from "../features/cortex/useCortexAllocation";
@@ -25,20 +24,22 @@ function App() {
   const [selectedAntenna, setSelectedAntenna] = useState<string>(
     MOCK_DEFAULT_SELECTED_ANTENNA,
   );
-  const [activeCommanderView, setActiveCommanderView] = useState<
-    "commander1" | "commander2"
-  >("commander1");
   const [isCortexDropdownOpen, setIsCortexDropdownOpen] = useState(false);
   const [isHdrDropdownOpen, setIsHdrDropdownOpen] = useState(false);
 
   const cortexCards = MOCK_CORTEX_CARDS;
 
-  const activeHdrIds = MOCK_ACTIVE_HDR_IDS;
+  const activeHdrIds =
+    MOCK_ACTIVE_HDR_IDS.length > 0
+      ? MOCK_ACTIVE_HDR_IDS
+      : MOCK_HDR_UNITS_BASE.slice(0, CORTEX_PER_PASS).map((unit) => unit.id);
   const [openHdrIds, setOpenHdrIds] = useState<string[]>([]);
-  const [isLeftPanelCollapsedC2, setIsLeftPanelCollapsedC2] = useState(false);
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
   const [loggedStartedPasses, setLoggedStartedPasses] = useState<
     Record<string, boolean>
   >({});
+  const [loggedIncomingAlarmWindowStartByAntenna, setLoggedIncomingAlarmWindowStartByAntenna] =
+    useState<Record<string, number>>({});
   const clickFeedbackClass =
     "press-feedback cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70";
 
@@ -52,13 +53,13 @@ function App() {
       }
       return [...prev, id];
     });
-    setIsHdrDropdownOpen(false);
   };
   const selectedAntennaData = ANTENNAS.find(
     (antenna) => antenna.id === selectedAntenna,
   );
   const isUnavailable = selectedAntennaData?.color === "#6B7C8F";
   const {
+    passScheduleByAntenna,
     hasScheduledPass,
     msUntilPassStart,
     isPendingPassStart,
@@ -74,25 +75,12 @@ function App() {
     antennas: ANTENNAS,
     selectedAntennaId: selectedAntenna,
   });
-  const isC2ActiveView = activeCommanderView === "commander2" && isActivePass;
-  const isC2PreparingView =
-    activeCommanderView === "commander2" &&
-    isPendingPassStart &&
-    !isUnavailable;
-  const isC2PreparingFinalWindow = isC2PreparingView && isPreparingFinalWindow;
-  const isC2UnavailableView =
-    activeCommanderView === "commander2" && isUnavailable;
-  const isC2FocusedPassView =
-    activeCommanderView === "commander2" &&
-    (isC2PreparingFinalWindow || isC2ActiveView);
-  const isC2DefaultCountdownView =
-    activeCommanderView === "commander2" &&
-    !isC2UnavailableView &&
-    !isC2FocusedPassView;
-  const c2LayoutKey =
-    activeCommanderView === "commander2"
-      ? `${selectedAntenna}-${isC2PreparingView ? "preparing" : isC2UnavailableView ? "unavailable" : isC2ActiveView ? "active" : "idle"}`
-      : "commander1";
+  const isActiveView = isActivePass;
+  const isPreparingView = isPendingPassStart && !isUnavailable;
+  const isPreparingFinalWindowView = isPreparingView && isPreparingFinalWindow;
+  const isUnavailableView = isUnavailable;
+  const isFocusedPassView = isPreparingFinalWindowView || isActiveView;
+  const isDefaultCountdownView = !isUnavailableView && !isFocusedPassView;
   const isCortexEngaged = isActivePass || isPreparingFinalWindow;
   const hdrUnits = MOCK_HDR_UNITS_BASE.map((unit) => ({
     ...unit,
@@ -116,14 +104,8 @@ function App() {
     selectedAntennaName,
     hasScheduledPass,
     isCortexEngaged,
-    commanderView: activeCommanderView,
     log: logActivity,
   });
-
-  const toggleCortexCardAndClose = (id: string) => {
-    toggleCortexCard(id);
-    setIsCortexDropdownOpen(false);
-  };
 
   useEffect(() => {
     if (!selectedAntennaData) return;
@@ -137,9 +119,14 @@ function App() {
     if (!isActivePass) return;
     if (loggedStartedPasses[selectedAntenna]) return;
 
-    logActivity(
-      `Pass started for ${selectedAntennaData?.name ?? selectedAntenna}`,
-    );
+    const passStartedMessage = `Pass started for ${
+      selectedAntennaData?.name ?? selectedAntenna
+    }`;
+    logActivity(passStartedMessage);
+    logAlarm(passStartedMessage, {
+      antennaId: selectedAntenna,
+      antennaName: selectedAntennaData?.name ?? selectedAntenna,
+    });
     setLoggedStartedPasses((prev) => ({ ...prev, [selectedAntenna]: true }));
   }, [
     isActivePass,
@@ -149,40 +136,64 @@ function App() {
   ]);
 
   useEffect(() => {
-    if (!isC2PreparingView) return;
-    setIsLeftPanelCollapsedC2(true);
+    if (!isPreparingView) return;
+    setIsLeftPanelCollapsed(false);
     setIsCortexDropdownOpen(false);
     setIsHdrDropdownOpen(false);
     setOpenHdrIds([]);
     setOpenCortexIds([]);
-  }, [activeCommanderView, isC2PreparingView, selectedAntenna]);
+  }, [isPreparingView, selectedAntenna]);
 
   useEffect(() => {
-    if (!isC2DefaultCountdownView) return;
-    setIsLeftPanelCollapsedC2(true);
+    if (!isDefaultCountdownView) return;
+    setIsLeftPanelCollapsed(false);
     setIsCortexDropdownOpen(false);
     setIsHdrDropdownOpen(false);
     setOpenHdrIds([]);
     setOpenCortexIds([]);
-  }, [isC2DefaultCountdownView, selectedAntenna]);
+  }, [isDefaultCountdownView, selectedAntenna]);
 
   useEffect(() => {
-    if (!isC2ActiveView) return;
-    setIsLeftPanelCollapsedC2(true);
-  }, [isC2ActiveView, selectedAntenna]);
+    if (!isActiveView) return;
+    setIsLeftPanelCollapsed(false);
+  }, [isActiveView, selectedAntenna]);
 
   useEffect(() => {
-    if (activeCommanderView !== "commander2") return;
-    setIsCortexDropdownOpen(false);
-  }, [activeCommanderView, selectedAntenna]);
+    const now = Date.now();
+    const incomingAlarmWindowMs = 5 * 60 * 1000;
+    const newAlarmStartsByAntenna: Record<string, number> = {};
+
+    for (const antenna of ANTENNAS) {
+      const passWindow = passScheduleByAntenna[antenna.id];
+      if (!passWindow) continue;
+
+      const msUntilStart = passWindow.startAt - now;
+      const isInIncomingWindow = msUntilStart > 0 && msUntilStart <= incomingAlarmWindowMs;
+      if (!isInIncomingWindow) continue;
+
+      newAlarmStartsByAntenna[antenna.id] = passWindow.startAt;
+      if (loggedIncomingAlarmWindowStartByAntenna[antenna.id] === passWindow.startAt) continue;
+
+      const minutesUntilStart = Math.ceil(msUntilStart / 60_000);
+      logAlarm(`Incoming pass for ${antenna.name} in ${minutesUntilStart} min`, {
+        antennaId: antenna.id,
+        antennaName: antenna.name,
+      });
+    }
+
+    setLoggedIncomingAlarmWindowStartByAntenna((prev) => {
+      const hasChanged =
+        Object.keys(prev).length !== Object.keys(newAlarmStartsByAntenna).length ||
+        Object.entries(newAlarmStartsByAntenna).some(([antennaId, startAt]) => prev[antennaId] !== startAt);
+      return hasChanged ? newAlarmStartsByAntenna : prev;
+    });
+  }, [loggedIncomingAlarmWindowStartByAntenna, passScheduleByAntenna]);
 
   const commanderModel: CommanderPageModel = {
     antennas: ANTENNAS,
     selectedAntenna,
     selectedAntennaName,
     setSelectedAntenna,
-    activeCommanderView,
-    setActiveCommanderView,
     isActivePass,
     isUnavailable,
     activePassAntennaIds,
@@ -191,17 +202,16 @@ function App() {
     setIsCortexDropdownOpen,
     isHdrDropdownOpen,
     setIsHdrDropdownOpen,
-    isLeftPanelCollapsedC2,
-    setIsLeftPanelCollapsedC2,
+    isLeftPanelCollapsed,
+    setIsLeftPanelCollapsed,
     cortexCards,
     hdrUnits,
     openCortexIds,
     setOpenCortexIds,
     openHdrIds,
     effectiveActiveCortexIds,
-    toggleCortexCard: toggleCortexCardAndClose,
+    toggleCortexCard,
     toggleHdrCard,
-    c2LayoutKey,
     isPendingPassStart,
     msUntilPassStart,
     passStartsAtLabel,
@@ -211,18 +221,14 @@ function App() {
     missionNote: selectedMissionNote,
     missionName: selectedMissionName,
     passProgress,
-    isC2PreparingView,
-    isC2UnavailableView,
-    isC2FocusedPassView,
-    isC2DefaultCountdownView,
-    isC2PreparingFinalWindow,
+    isPreparingView,
+    isUnavailableView,
+    isFocusedPassView,
+    isDefaultCountdownView,
+    isPreparingFinalWindowView,
   };
 
-  return activeCommanderView === "commander1" ? (
-    <Commander1Page model={commanderModel} />
-  ) : (
-    <Commander2Page model={commanderModel} />
-  );
+  return <CommanderPage model={commanderModel} />;
 }
 
 export default App;

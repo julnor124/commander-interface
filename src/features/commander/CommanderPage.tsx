@@ -20,9 +20,6 @@ export interface CommanderPageModel {
   selectedAntennaName: string;
   setSelectedAntenna: (id: string) => void;
 
-  activeCommanderView: 'commander1' | 'commander2';
-  setActiveCommanderView: (updater: (prev: 'commander1' | 'commander2') => 'commander1' | 'commander2') => void;
-
   isActivePass: boolean;
   isUnavailable: boolean;
   activePassAntennaIds: string[];
@@ -34,8 +31,8 @@ export interface CommanderPageModel {
   setIsCortexDropdownOpen: (updater: (prev: boolean) => boolean) => void;
   isHdrDropdownOpen: boolean;
   setIsHdrDropdownOpen: (updater: (prev: boolean) => boolean) => void;
-  isLeftPanelCollapsedC2: boolean;
-  setIsLeftPanelCollapsedC2: (updater: (prev: boolean) => boolean) => void;
+  isLeftPanelCollapsed: boolean;
+  setIsLeftPanelCollapsed: (updater: (prev: boolean) => boolean) => void;
 
   // Cortex/HDR data
   cortexCards: CortexData[];
@@ -49,7 +46,6 @@ export interface CommanderPageModel {
   toggleHdrCard: (id: string) => void;
 
   // Pass & view flags
-  c2LayoutKey: string;
   isPendingPassStart: boolean;
   msUntilPassStart: number;
   passStartsAtLabel: string;
@@ -60,11 +56,11 @@ export interface CommanderPageModel {
   missionName: string;
   passProgress: number;
 
-  isC2PreparingView: boolean;
-  isC2UnavailableView: boolean;
-  isC2FocusedPassView: boolean;
-  isC2DefaultCountdownView: boolean;
-  isC2PreparingFinalWindow: boolean;
+  isPreparingView: boolean;
+  isUnavailableView: boolean;
+  isFocusedPassView: boolean;
+  isDefaultCountdownView: boolean;
+  isPreparingFinalWindowView: boolean;
 }
 
 export default function CommanderPage({ model }: { model: CommanderPageModel }) {
@@ -73,8 +69,6 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
     selectedAntenna,
     selectedAntennaName,
     setSelectedAntenna,
-    activeCommanderView,
-    setActiveCommanderView,
     isActivePass,
     isUnavailable,
     activePassAntennaIds,
@@ -83,8 +77,8 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
     setIsCortexDropdownOpen,
     isHdrDropdownOpen,
     setIsHdrDropdownOpen,
-    isLeftPanelCollapsedC2,
-    setIsLeftPanelCollapsedC2,
+    isLeftPanelCollapsed,
+    setIsLeftPanelCollapsed,
     cortexCards,
     hdrUnits,
     openCortexIds,
@@ -93,7 +87,6 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
     effectiveActiveCortexIds,
     toggleCortexCard,
     toggleHdrCard,
-    c2LayoutKey,
     isPendingPassStart,
     msUntilPassStart,
     passStartsAtLabel,
@@ -103,13 +96,16 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
     missionNote,
     missionName,
     passProgress,
-    isC2PreparingView,
-    isC2UnavailableView,
-    isC2FocusedPassView,
-    isC2DefaultCountdownView,
-    isC2PreparingFinalWindow,
+    isPreparingView,
+    isUnavailableView,
+    isFocusedPassView,
+    isDefaultCountdownView,
+    isPreparingFinalWindowView,
   } = model;
   const hdrUnitsById = new Map(hdrUnits.map((unit) => [unit.id, unit]));
+  const activeHdrIds = hdrUnits.filter((unit) => unit.active).map((unit) => unit.id);
+  const visibleCortexIds = Array.from(new Set([...(isActivePass ? effectiveActiveCortexIds : [])]));
+  const visibleHdrIds = Array.from(new Set([...(isActivePass ? activeHdrIds : [])]));
 
   return (
     <div className="min-h-screen bg-[#0f1c28] text-white">
@@ -123,15 +119,6 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
             >
               Antenna {selectedAntennaName}
             </div>
-            <button
-              onClick={() =>
-                setActiveCommanderView((prev) => (prev === 'commander1' ? 'commander2' : 'commander1'))
-              }
-              className="text-[9px] text-[#7f94a6] hover:text-[#3ABEFF] cursor-pointer transition-colors"
-              title={activeCommanderView === 'commander1' ? 'Switch to Commander 2' : 'Switch to Commander 1'}
-            >
-              {activeCommanderView === 'commander1' ? 'c2' : 'c1'}
-            </button>
           </div>
           <div className="flex-1 min-w-0">
             <AntennaSelector antennas={antennas} selectedId={selectedAntenna} onSelect={setSelectedAntenna} activeAntennaIds={activePassAntennaIds} />
@@ -142,30 +129,24 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
       {/* Main Layout */}
       <div
         className={`grid ${
-          isC2UnavailableView
+          isUnavailableView
             ? 'grid-cols-1'
             : 'grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)_320px]'
         } gap-4 p-4 transition-all duration-700 ${isUnavailable ? 'opacity-60 saturate-0' : ''}`}
       >
         {/* Left Sidebar */}
-        {!isC2UnavailableView && (
+        {!isUnavailableView && (
           <div className="space-y-6">
             <div>
-              {activeCommanderView === 'commander2' ? (
-                <button
-                  onClick={() => setIsLeftPanelCollapsedC2((prev) => !prev)}
-                  className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-2 cursor-pointer"
-                >
-                  <span className="absolute inset-x-0 text-center">Cortex and Hdr/Rtt</span>
-                  {isLeftPanelCollapsedC2 ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-                </button>
-              ) : (
-                <h2 className="text-[18px] font-medium mb-3 text-center bg-[#213b54] rounded px-3 py-1">
-                  Cortex and Hdr/Rtt
-                </h2>
-              )}
+              <button
+                onClick={() => setIsLeftPanelCollapsed(() => false)}
+                className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-2"
+              >
+                <span className="absolute inset-x-0 text-center">Cortex and Hdr/Rtt</span>
+                <ChevronUp size={16} />
+              </button>
 
-              {activeCommanderView === 'commander2' && isLeftPanelCollapsedC2 ? null : (
+              {isLeftPanelCollapsed ? null : (
                 <>
                   <div className="grid grid-cols-2 gap-2 mb-2">
                     <button
@@ -228,7 +209,7 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
 
                   <div className="space-y-3">
                     {cortexCards
-                      .filter((card) => openCortexIds.includes(card.id))
+                      .filter((card) => visibleCortexIds.includes(card.id))
                       .map((card) => (
                         <React.Fragment key={card.id}>
                           <CortexCard
@@ -248,8 +229,8 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
                       ))}
                   </div>
 
-                  <div className={`space-y-3 ${openCortexIds.length > 0 ? 'mt-6' : 'mt-0'}`}>
-                    {openHdrIds.map((id) => (
+                  <div className={`space-y-3 ${visibleCortexIds.length > 0 ? 'mt-6' : 'mt-0'}`}>
+                    {visibleHdrIds.map((id) => (
                       <React.Fragment key={id}>
                         {(() => {
                           const hdrUnit = hdrUnitsById.get(id);
@@ -274,10 +255,10 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
         {/* Center Panel */}
         <div
           className={`space-y-3 w-full ${
-            isC2UnavailableView ? 'flex flex-col items-center justify-center min-h-[68vh]' : ''
+            isUnavailableView ? 'flex flex-col items-center justify-center min-h-[68vh]' : ''
           }`}
         >
-          <div className={isC2UnavailableView ? 'w-full max-w-[520px]' : ''}>
+          <div className={isUnavailableView ? 'w-full max-w-[520px]' : ''}>
             <PassInfoCard
               isActivePass={isActivePass}
               isUnavailable={isUnavailable}
@@ -288,43 +269,38 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
               timeLeftLabel={timeLeftLabel}
               countdownLabel={countdownLabel}
               missionNote={missionNote}
-              commanderView={activeCommanderView}
-              forceExpanded={isC2PreparingView || isC2UnavailableView || isC2FocusedPassView || isC2DefaultCountdownView}
+              forceExpanded={isPreparingView || isUnavailableView || isFocusedPassView || isDefaultCountdownView}
               forceCollapsed={false}
             />
           </div>
 
-          {!isC2UnavailableView && (
+          {!isUnavailableView && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <AntennaStatusPanel
                 isUnavailable={isUnavailable}
                 missionName={missionName}
-                commanderView={activeCommanderView}
-                forceExpanded={isC2PreparingView || isC2FocusedPassView || isC2DefaultCountdownView}
+                forceExpanded={isPreparingView || isFocusedPassView || isDefaultCountdownView}
                 forceCollapsed={false}
               />
               <SignalPanel
                 isUnavailable={isUnavailable}
                 isActivePass={isActivePass}
-                commanderView={activeCommanderView}
-                forceCollapsed={isC2DefaultCountdownView || (isC2PreparingView && !isC2PreparingFinalWindow)}
-                forceExpanded={isC2FocusedPassView}
+                forceCollapsed={isDefaultCountdownView || (isPreparingView && !isPreparingFinalWindowView)}
+                forceExpanded={isFocusedPassView}
               />
             </div>
           )}
 
-          {!isC2UnavailableView && (
+          {!isUnavailableView && (
             <>
               <ControlPanel
                 isUnavailable={isUnavailable}
-                commanderView={activeCommanderView}
-                forceCollapsed={isC2FocusedPassView || isC2DefaultCountdownView || (isC2PreparingView && !isC2PreparingFinalWindow)}
+                forceCollapsed={isFocusedPassView || isDefaultCountdownView || (isPreparingView && !isPreparingFinalWindowView)}
                 forceExpanded={false}
               />
               <ActionsPanel
                 isUnavailable={isUnavailable}
-                commanderView={activeCommanderView}
-                forceCollapsed={isC2FocusedPassView || isC2DefaultCountdownView || (isC2PreparingView && !isC2PreparingFinalWindow)}
+                forceCollapsed={isFocusedPassView || isDefaultCountdownView || (isPreparingView && !isPreparingFinalWindowView)}
                 forceExpanded={false}
               />
             </>
@@ -332,21 +308,19 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
         </div>
 
         {/* Right Panel */}
-        {!isC2UnavailableView && (
+        {!isUnavailableView && (
           <div className="space-y-4">
             <TrackingPanel
               isActivePass={isActivePass}
               isUnavailable={isUnavailable}
               passProgress={passProgress}
-              commanderView={activeCommanderView}
-              forceCollapsed={isC2DefaultCountdownView || (isC2PreparingView && !isC2PreparingFinalWindow)}
-              forceExpanded={isC2FocusedPassView}
+              forceCollapsed={isDefaultCountdownView || (isPreparingView && !isPreparingFinalWindowView)}
+              forceExpanded={isFocusedPassView}
             />
             <ActivityLogPanel
               selectedAntennaId={selectedAntenna}
               selectedAntennaName={selectedAntennaName}
-              commanderView={activeCommanderView}
-              forceCollapsed={isC2FocusedPassView || isC2DefaultCountdownView || (isC2PreparingView && !isC2PreparingFinalWindow)}
+              forceCollapsed={false}
               forceExpanded={false}
             />
           </div>

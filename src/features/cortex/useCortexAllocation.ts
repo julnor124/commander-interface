@@ -11,7 +11,6 @@ export function useCortexAllocation(params: {
   selectedAntennaName: string;
   hasScheduledPass: boolean;
   isCortexEngaged: boolean;
-  commanderView: 'commander1' | 'commander2';
   log: (message: string) => void;
 }) {
   const {
@@ -21,7 +20,6 @@ export function useCortexAllocation(params: {
     selectedAntennaName,
     hasScheduledPass,
     isCortexEngaged,
-    commanderView,
     log,
   } = params;
 
@@ -64,17 +62,13 @@ export function useCortexAllocation(params: {
   }, [cortexCards, cortexPerPass, hasScheduledPass, log, selectedAntennaId, selectedAntennaName]);
 
   useEffect(() => {
-    if (commanderView === 'commander2') {
-      setOpenCortexIds([]);
-      return;
-    }
     if (!hasScheduledPass || !isCortexEngaged) {
       setOpenCortexIds([]);
       return;
     }
     const assignedForSelected = assignedCortexByAntenna[selectedAntennaId] ?? [];
     setOpenCortexIds(assignedForSelected);
-  }, [assignedCortexByAntenna, commanderView, hasScheduledPass, isCortexEngaged, selectedAntennaId]);
+  }, [assignedCortexByAntenna, hasScheduledPass, isCortexEngaged, selectedAntennaId]);
 
   const toggleCortexCard = (id: string) => {
     setOpenCortexIds((prev) => {
