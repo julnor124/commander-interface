@@ -40,7 +40,11 @@ export default function HDRCard({
       )}
 
       <div className="mb-2">
-        <h3 className="text-[14px] leading-none text-[#f2f2f2] underline underline-offset-4">
+        <h3
+          className={`text-[14px] leading-none underline underline-offset-4 ${
+            isActive ? 'text-[#3ABEFF]' : 'text-[#f2f2f2]'
+          }`}
+        >
           {title ?? 'Hdr/Rtt'}
         </h3>
       </div>

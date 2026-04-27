@@ -6,19 +6,16 @@ import { usePanelCollapse } from '../../features/ui/usePanelCollapse';
 
 interface ActionsPanelProps {
   isUnavailable?: boolean;
-  commanderView?: 'commander1' | 'commander2';
   forceCollapsed?: boolean;
   forceExpanded?: boolean;
 }
 
 export default function ActionsPanel({
   isUnavailable = false,
-  commanderView = 'commander1',
   forceCollapsed = false,
   forceExpanded = false,
 }: ActionsPanelProps) {
   const { isCollapsed, setIsCollapsed } = usePanelCollapse({
-    commanderView,
     forceCollapsed,
     forceExpanded,
   });
@@ -73,8 +70,10 @@ export default function ActionsPanel({
       ],
     },
   ];
-  const [activeActionTab, setActiveActionTab] = useState<string>(sections[0].title);
-  const activeSection = sections.find((section) => section.title === activeActionTab);
+  const c2HiddenSectionTitles = new Set(['Tracking', 'Position', 'Pass', 'Mission']);
+  const c2Sections = sections.filter((section) => !c2HiddenSectionTitles.has(section.title));
+  const [activeActionTab, setActiveActionTab] = useState<string>('File Transfer');
+  const activeSection = c2Sections.find((section) => section.title === activeActionTab);
   const activeMenuOptions = menuOptions[activeActionTab as keyof typeof menuOptions];
   const { controls: offsetControls, increment, decrement, reset } = useOffsetControls({
     onIncrement: (key) => logActivity(`Offset ${key} increased`),
@@ -92,29 +91,22 @@ export default function ActionsPanel({
   return (
     <div className={`relative ${isUnavailable ? 'grayscale' : ''}`}>
       <div className="flex items-center justify-between gap-2 mb-2 bg-[#213b54] rounded px-2.5 py-1">
-        {commanderView === 'commander2' ? (
-          <button
-            onClick={() => setIsCollapsed((prev) => !prev)}
-            className="w-full relative flex items-center justify-end text-[14px] text-[#e7edf2] font-medium py-1 cursor-pointer"
-          >
-            <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
-              <ListChecks size={14} />
-              Actions
-            </span>
-            {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-          </button>
-        ) : (
-          <div className="text-[13px] text-[#e7edf2] font-medium w-full flex items-center justify-center gap-1.5">
+        <button
+          onClick={() => setIsCollapsed((prev) => !prev)}
+          className="w-full relative flex items-center justify-end text-[14px] text-[#e7edf2] font-medium py-1 cursor-pointer"
+        >
+          <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
             <ListChecks size={13} />
             Actions
-          </div>
-        )}
+          </span>
+          {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+        </button>
       </div>
 
-      {commanderView === 'commander2' && isCollapsed ? null : commanderView === 'commander2' ? (
+      {isCollapsed ? null : (
         <div className="bg-[#173148] border border-[#2a4864] rounded p-2">
           <div className="flex flex-wrap items-center gap-1.5 mb-2">
-            {[...sections.map((section) => section.title), ...menuOrder, 'Offset'].map((tabName) => (
+            {[...c2Sections.map((section) => section.title), ...menuOrder, 'Offset'].map((tabName) => (
               <button
                 key={tabName}
                 onClick={() => setActiveActionTab(tabName)}
@@ -190,46 +182,6 @@ export default function ActionsPanel({
             </div>
           </div>
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-2 xl:grid-cols-6 gap-2">
-            {sections.map((section) => (
-              <div key={section.title} className="bg-[#173148] border border-[#2a4864] rounded p-2 min-h-[106px] flex flex-col">
-                <div className="text-[11px] tracking-wide uppercase text-[#d7e3ed] mb-2">{section.title}</div>
-                <div className="space-y-1.5">
-                  {section.actions.map((action) => (
-                    <button
-                      key={action.label}
-                      onClick={() => logActivity(action.log)}
-                      className={buttonClass}
-                    >
-                      {action.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-2 grid grid-cols-2 xl:grid-cols-5 gap-2">
-            {menuOrder.map((menuName) => (
-              <div key={menuName} className="bg-[#173148] border border-[#2a4864] rounded p-2 min-h-[106px] flex flex-col">
-                <div className="text-[11px] tracking-wide uppercase text-[#d7e3ed] mb-2">{menuName}</div>
-                <div className="space-y-1.5">
-                  {menuOptions[menuName].map((option) => (
-                    <button
-                      key={option}
-                      onClick={() => logActivity(`${menuName}: ${option}`)}
-                      className={buttonClass}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
       )}
     </div>
   );

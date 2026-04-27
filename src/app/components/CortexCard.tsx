@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { CortexData } from '../../features/commander/types';
+import { logActivity } from '../../features/activityLog/activityLogBus';
 
 interface CortexCardProps {
   data: CortexData;
@@ -21,11 +22,17 @@ export default function CortexCard({
   const [isRemoving, setIsRemoving] = useState(false);
   const [isInterfaceModalOpen, setIsInterfaceModalOpen] = useState(false);
 
+  const cardLabel = title ?? data.name;
+
   const handleRemove = () => {
     setIsRemoving(true);
     setTimeout(() => {
       onRemove();
     }, 300);
+  };
+
+  const handleSweepClick = () => {
+    logActivity(`${cardLabel}: SWEEP pressed`);
   };
 
   return (
@@ -61,7 +68,7 @@ export default function CortexCard({
             isActive ? 'text-[#3ABEFF]' : 'text-[#f2f2f2]'
           }`}
         >
-          {title ?? data.name}
+          {cardLabel}
         </button>
       </div>
 
@@ -103,7 +110,12 @@ export default function CortexCard({
           <div className="mt-2 grid grid-cols-4 text-[10px] text-[#f2f2f2]">
             <div>RNG</div>
             <div>20 1</div>
-            <div>SWEEP</div>
+            <button
+              onClick={handleSweepClick}
+              className="justify-self-start cursor-pointer rounded px-1.5 py-0.5 border border-[#4f6a82] bg-[#2d4359] text-[#e7edf2] transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70"
+            >
+              SWEEP
+            </button>
             <div>REC</div>
           </div>
         </div>

@@ -7,14 +7,12 @@ import ConfirmDialog from './ConfirmDialog';
 
 interface ControlPanelProps {
   isUnavailable?: boolean;
-  commanderView?: 'commander1' | 'commander2';
   forceCollapsed?: boolean;
   forceExpanded?: boolean;
 }
 
 export default function ControlPanel({
   isUnavailable = false,
-  commanderView = 'commander1',
   forceCollapsed = false,
   forceExpanded = false,
 }: ControlPanelProps) {
@@ -22,7 +20,6 @@ export default function ControlPanel({
   const [rfSelection, setRfSelection] = useState<'ON' | 'OFF'>('OFF');
   const [xRfSelection, setXRfSelection] = useState<'ON' | 'OFF'>('OFF');
   const { isCollapsed, setIsCollapsed } = usePanelCollapse({
-    commanderView,
     forceCollapsed,
     forceExpanded,
   });
@@ -37,6 +34,35 @@ export default function ControlPanel({
   ];
   const clickFeedbackClass =
     'press-feedback cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70';
+  const c2MovedActionGroups = [
+    {
+      title: 'Mission',
+      actions: [{ label: 'Prepare mission', log: 'Action: Prepare mission' }],
+    },
+    {
+      title: 'Pass',
+      actions: [
+        { label: 'Prepare pass', log: 'Action: Prepare pass' },
+        { label: 'Acquire', log: 'Action: Acquire' },
+        { label: 'End Pass', log: 'Action: End Pass' },
+      ],
+    },
+    {
+      title: 'Position',
+      actions: [
+        { label: 'Position to', log: 'Action: Position to' },
+        { label: 'Sun', log: 'Action: Sun' },
+        { label: 'Stow', log: 'Action: Stow' },
+      ],
+    },
+    {
+      title: 'Tracking',
+      actions: [
+        { label: 'Enable Autotrack', log: 'Action: Enable Autotrack' },
+        { label: 'Force Autotrack', log: 'Action: Force Autotrack' },
+      ],
+    },
+  ];
 
   const { controls: offsetControls, increment, decrement, reset } = useOffsetControls({
     onIncrement: (key) => logActivity(`Offset ${key} increased`),
@@ -56,30 +82,22 @@ export default function ControlPanel({
 
   return (
     <div>
-      {commanderView === 'commander2' ? (
-        <button
-          onClick={() => setIsCollapsed((prev) => !prev)}
-          className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-1.5 cursor-pointer"
-        >
-          <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
-            <SlidersHorizontal size={16} />
-            Control
-          </span>
-          {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-        </button>
-      ) : (
-        <h2 className="text-[14px] font-medium mb-2 bg-[#213b54] rounded px-3 py-1.5 text-center">
-          <span className="inline-flex items-center justify-center gap-1.5 w-full">
-            <SlidersHorizontal size={14} />
-            Control
-          </span>
-        </h2>
-      )}
+      <button
+        onClick={() => setIsCollapsed((prev) => !prev)}
+        className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-1.5 cursor-pointer"
+      >
+        <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
+          <SlidersHorizontal size={16} />
+          Control
+        </span>
+        {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+      </button>
 
-      {commanderView === 'commander2' && isCollapsed ? null : (
-      <div className={`grid gap-2.5 ${commanderView === 'commander2' ? 'grid-cols-2' : 'grid-cols-3'}`}>
+      {isCollapsed ? null : (
+      <div className="space-y-2.5">
+        <div className="flex flex-wrap items-start justify-center gap-2.5">
         {/* Left: Matrix Controls */}
-        <div className="space-y-2 bg-[#173148] rounded p-2 min-h-[96px]">
+        <div className="space-y-2 bg-[#173148] rounded p-2 min-h-[96px] w-full max-w-[320px]">
           <div>
             <h3 className="text-[10px] tracking-wide uppercase text-[#8ea2b3] mb-1.5 text-center">Matrix</h3>
             <div className="grid grid-cols-1 gap-2">
@@ -109,7 +127,7 @@ export default function ControlPanel({
         </div>
 
         {/* Right: RF Controls and Inputs */}
-        <div className="space-y-2 bg-[#173148] rounded p-2 min-h-[96px]">
+        <div className="space-y-2 bg-[#173148] rounded p-2 min-h-[96px] w-full max-w-[320px]">
           <h3 className="text-[10px] tracking-wide uppercase text-[#8ea2b3] text-left">RF</h3>
           <div>
             <div className="grid grid-cols-2 gap-2 mb-2">
@@ -180,44 +198,34 @@ export default function ControlPanel({
             </div>
           </div>
         </div>
+        </div>
 
-        {commanderView !== 'commander2' && (
-          <div className="space-y-1.5 bg-[#173148] rounded p-2 min-h-[96px]">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[10px] tracking-wide uppercase text-[#8ea2b3] text-left">Offset</h3>
-              <button
-                onClick={handleResetOffsets}
-                className={`px-1.5 h-4 bg-[#3a5268] text-[#e7edf2] rounded text-[9px] ${clickFeedbackClass}`}
-              >
-                Reset
-              </button>
-            </div>
-            {offsetControls.map((control) => (
-              <div key={control.label} className="flex items-center gap-2">
-                <span className="text-[10px] text-[#8ea2b3] w-8">{control.label}</span>
-                <div className="w-4 h-4 bg-[#d0d0d0] rounded text-center leading-4 text-[#223446] text-[10px]">
-                  {isUnavailable ? '' : control.value}
+          <div className="space-y-2 bg-[#173148] border border-[#2a4864] rounded p-2.5">
+            <h3 className="text-[10px] tracking-wide uppercase text-[#8ea2b3] text-left">Operations</h3>
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
+              {c2MovedActionGroups.map((group) => (
+                <div
+                  key={group.title}
+                  className="bg-[#1a364f] border border-[#2f5370] rounded-md p-2 shadow-[inset_0_1px_0_rgba(120,170,210,0.08)]"
+                >
+                  <div className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#213f58] text-[9px] tracking-wide uppercase text-[#c7d7e5] mb-2">
+                    {group.title}
+                  </div>
+                  <div className="space-y-1">
+                    {group.actions.map((action) => (
+                      <button
+                        key={action.label}
+                        onClick={() => logActivity(action.log)}
+                        className={`w-full px-2 py-1 bg-[#3a5268] text-[#e7edf2] rounded text-[10px] leading-tight text-left ${clickFeedbackClass}`}
+                      >
+                        {action.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <button
-                  onClick={() => {
-                    decrement(control.label);
-                  }}
-                  className={`w-4 h-4 bg-[#3a5268] text-[#e7edf2] rounded text-[10px] leading-4 ${clickFeedbackClass}`}
-                >
-                  -
-                </button>
-                <button
-                  onClick={() => {
-                    increment(control.label);
-                  }}
-                  className={`w-4 h-4 bg-[#3a5268] text-[#e7edf2] rounded text-[10px] leading-4 ${clickFeedbackClass}`}
-                >
-                  +
-                </button>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        )}
       </div>
       )}
 

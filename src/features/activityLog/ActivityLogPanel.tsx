@@ -7,7 +7,6 @@ import { usePanelCollapse } from '../ui/usePanelCollapse';
 interface ActivityLogPanelProps {
   selectedAntennaId: string;
   selectedAntennaName: string;
-  commanderView?: 'commander1' | 'commander2';
   forceCollapsed?: boolean;
   forceExpanded?: boolean;
 }
@@ -17,16 +16,15 @@ const ACTIVITY_LOG_HEIGHT_CLASS = 'h-[264px]';
 export default function ActivityLogPanel({
   selectedAntennaId,
   selectedAntennaName,
-  commanderView = 'commander1',
   forceCollapsed = false,
   forceExpanded = false,
 }: ActivityLogPanelProps) {
   const [entries, setEntries] = useState<ActivityEntry[]>([]);
   const [isLogUpdated, setIsLogUpdated] = useState(false);
   const [viewMode, setViewMode] = useState<'antenna' | 'all'>('antenna');
+  const [logTab, setLogTab] = useState<'activity' | 'alarms'>('activity');
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const { isCollapsed, setIsCollapsed } = usePanelCollapse({
-    commanderView,
     forceCollapsed,
     forceExpanded,
   });
@@ -58,15 +56,19 @@ export default function ActivityLogPanel({
     logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
   }, [entries, viewMode, selectedAntennaId]);
 
-  const filteredEntries =
+  const filteredByAntenna =
     viewMode === 'antenna'
       ? entries.filter((entry) => entry.antennaId === selectedAntennaId)
       : entries;
 
+  const filteredEntries = filteredByAntenna.filter((entry) =>
+    logTab === 'alarms' ? entry.type === 'alarm' : entry.type !== 'alarm',
+  );
+
   const resetTargetLabel =
     viewMode === 'antenna'
-      ? `activity for antenna ${selectedAntennaName}`
-      : 'activity for all antennas';
+      ? `${logTab === 'alarms' ? 'alarms' : 'activity'} for antenna ${selectedAntennaName}`
+      : `${logTab === 'alarms' ? 'alarms' : 'activity'} for all antennas`;
 
   const handleConfirmReset = () => {
     if (viewMode === 'antenna') {
@@ -88,39 +90,53 @@ export default function ActivityLogPanel({
     return 'text-[#aab8c6]';
   };
 
+  const getEmptyStateLabel = () =>
+    logTab === 'alarms' ? 'No alarms yet in this view.' : 'No activity yet in this view.';
+  const scopeBadgeLabel =
+    viewMode === 'antenna' ? `THIS ANTENNA: ${selectedAntennaName.toUpperCase()}` : 'ALL ANTENNAS';
+  const scopeHelperLabel =
+    viewMode === 'antenna' ? 'Only current antenna events' : 'Combined feed from every antenna';
+
   return (
     <div className="mt-2">
       <div className="flex items-center justify-between mb-4">
-        {commanderView === 'commander2' ? (
-          <button
-            onClick={() => setIsCollapsed((prev) => !prev)}
-            className="relative flex items-center justify-end w-full text-[18px] font-medium bg-[#213b54] rounded px-3 py-1.5 cursor-pointer"
-          >
-            <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
-              <List size={16} />
-              Activity log
-            </span>
-            {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-          </button>
-        ) : (
-          <h2
-            className={`text-base font-medium transition-colors duration-300 ${
-              isLogUpdated ? 'text-[#7cd7ff]' : 'text-[#9fb0bf]'
-            }`}
-          >
-            <span className="inline-flex items-center gap-1.5">
-              <List size={14} />
-              Activity log
-            </span>
-          </h2>
-        )}
-        {commanderView === 'commander1' && (
-          <div className="flex items-center gap-2">
+        <button
+          onClick={() => setIsCollapsed((prev) => !prev)}
+          className="relative flex items-center justify-end w-full text-[18px] font-medium bg-[#213b54] rounded px-3 py-1.5 cursor-pointer"
+        >
+          <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
+            <List size={16} />
+            Activity log
+          </span>
+          {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+        </button>
+      </div>
+      {isCollapsed ? null : (
+        <>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="inline-flex items-center p-0.5 rounded bg-[#1a2c3c] border border-[#2e4a66]">
+              <button
+                onClick={() => setLogTab('activity')}
+                className={`px-2 py-0.5 rounded text-[10px] ${
+                  logTab === 'activity' ? 'bg-[#3a5268] text-[#e7edf2]' : 'text-[#9fb0bf]'
+                } ${pressFeedbackClass}`}
+              >
+                Activity
+              </button>
+              <button
+                onClick={() => setLogTab('alarms')}
+                className={`px-2 py-0.5 rounded text-[10px] ${
+                  logTab === 'alarms' ? 'bg-[#3a5268] text-[#e7edf2]' : 'text-[#9fb0bf]'
+                } ${pressFeedbackClass}`}
+              >
+                ALARMS
+              </button>
+            </div>
             <button
               onClick={() => setViewMode((prev) => (prev === 'antenna' ? 'all' : 'antenna'))}
               className={`px-2 py-0.5 bg-[#3a5268] text-[#e7edf2] rounded text-[10px] ${pressFeedbackClass}`}
             >
-              {viewMode === 'antenna' ? 'Show all antennas' : 'Show this antenna'}
+              {viewMode === 'antenna' ? 'Switch to ALL antennas' : 'Switch to THIS antenna'}
             </button>
             <button
               onClick={() => setIsResetDialogOpen(true)}
@@ -129,29 +145,18 @@ export default function ActivityLogPanel({
               Reset
             </button>
           </div>
-        )}
-      </div>
-      {commanderView === 'commander2' && isCollapsed ? null : (
-        <>
-          {commanderView === 'commander2' && (
-            <div className="flex items-center gap-2 mb-2">
-              <button
-                onClick={() => setViewMode((prev) => (prev === 'antenna' ? 'all' : 'antenna'))}
-                className={`px-2 py-0.5 bg-[#3a5268] text-[#e7edf2] rounded text-[10px] ${pressFeedbackClass}`}
-              >
-                {viewMode === 'antenna' ? 'Show all antennas' : 'Show this antenna'}
-              </button>
-              <button
-                onClick={() => setIsResetDialogOpen(true)}
-                className={`px-2 py-0.5 bg-[#3a5268] text-[#e7edf2] rounded text-[10px] ${pressFeedbackClass}`}
-              >
-                Reset
-              </button>
+          <div className="mb-2 -mt-1 flex items-center justify-between gap-2">
+            <div
+              className={`inline-flex items-center rounded px-2 py-1 text-[10px] font-semibold tracking-wide border ${
+                viewMode === 'antenna'
+                  ? 'bg-[#1c3850] text-[#c1e9ff] border-[#3ABEFF]'
+                  : 'bg-[#2a3340] text-[#dce4ed] border-[#667789]'
+              }`}
+            >
+              {scopeBadgeLabel}
             </div>
-          )}
-          <p className="text-[10px] text-[#7f92a3] -mt-2 mb-2">
-            Showing: {viewMode === 'antenna' ? `Antenna ${selectedAntennaName}` : 'All antennas'}
-          </p>
+            <p className="text-[10px] text-[#8da0b2]">{scopeHelperLabel}</p>
+          </div>
           <div
             ref={logContainerRef}
             className={`bg-[#162535] border rounded-lg ${ACTIVITY_LOG_HEIGHT_CLASS} overflow-y-auto transition-all duration-300 ${
@@ -163,7 +168,7 @@ export default function ActivityLogPanel({
             <div className="p-4 space-y-2">
               {filteredEntries.length === 0 && (
                 <p className="text-xs text-[#9aabbb] leading-relaxed">
-                  No activity yet in this view.
+                  {getEmptyStateLabel()}
                 </p>
               )}
               {filteredEntries.map((entry, index) => (

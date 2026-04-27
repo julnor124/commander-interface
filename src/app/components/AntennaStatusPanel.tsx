@@ -4,7 +4,6 @@ import { ChevronDown, ChevronUp, Crosshair } from 'lucide-react';
 interface AntennaStatusPanelProps {
   isUnavailable?: boolean;
   missionName?: string;
-  commanderView?: 'commander1' | 'commander2';
   forceExpanded?: boolean;
   forceCollapsed?: boolean;
 }
@@ -12,7 +11,6 @@ interface AntennaStatusPanelProps {
 export default function AntennaStatusPanel({
   isUnavailable = false,
   missionName = 'Unknown',
-  commanderView = 'commander1',
   forceExpanded = false,
   forceCollapsed = false,
 }: AntennaStatusPanelProps) {
@@ -53,25 +51,16 @@ export default function AntennaStatusPanel({
 
   return (
     <div>
-      {commanderView === 'commander2' ? (
-        <button
-          onClick={() => setIsCollapsed((prev) => !prev)}
-          className="w-full relative flex items-center justify-end text-[18px] font-medium mb-3 bg-[#213b54] rounded px-3 py-1.5 cursor-pointer"
-        >
-          <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
-            <Crosshair size={16} />
-            Antenna Status
-          </span>
-          {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-        </button>
-      ) : (
-        <h2 className="text-[16px] font-medium mb-3 text-center bg-[#213b54] rounded px-2 py-1">
-          <span className="inline-flex items-center gap-1.5">
-            <Crosshair size={14} />
-            Antenna Status
-          </span>
-        </h2>
-      )}
+      <button
+        onClick={() => setIsCollapsed((prev) => !prev)}
+        className="w-full relative flex items-center justify-end text-[18px] font-medium mb-3 bg-[#213b54] rounded px-3 py-1.5 cursor-pointer"
+      >
+        <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
+          <Crosshair size={16} />
+          Antenna Status
+        </span>
+        {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+      </button>
 
       {showContent ? (
       <div className="grid grid-cols-2 gap-3">

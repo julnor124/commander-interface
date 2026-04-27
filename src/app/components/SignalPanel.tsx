@@ -4,7 +4,6 @@ import { ChevronDown, ChevronUp, Signal as SignalIcon } from 'lucide-react';
 interface SignalPanelProps {
   isUnavailable?: boolean;
   isActivePass?: boolean;
-  commanderView?: 'commander1' | 'commander2';
   forceCollapsed?: boolean;
   forceExpanded?: boolean;
 }
@@ -12,7 +11,6 @@ interface SignalPanelProps {
 export default function SignalPanel({
   isUnavailable = false,
   isActivePass = false,
-  commanderView = 'commander1',
   forceCollapsed = false,
   forceExpanded = false,
 }: SignalPanelProps) {
@@ -51,27 +49,18 @@ export default function SignalPanel({
 
   return (
     <div>
-      {commanderView === 'commander2' ? (
-        <button
-          onClick={() => setIsCollapsed((prev) => !prev)}
-          className="w-full relative flex items-center justify-end text-[18px] font-medium mb-3 bg-[#213b54] rounded px-3 py-1.5 cursor-pointer"
-        >
-          <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
-            <SignalIcon size={16} />
-            Signal
-          </span>
-          {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-        </button>
-      ) : (
-        <h2 className="text-[16px] font-medium mb-3 text-center bg-[#213b54] rounded px-2 py-1">
-          <span className="inline-flex items-center gap-1.5">
-            <SignalIcon size={14} />
-            Signal
-          </span>
-        </h2>
-      )}
+      <button
+        onClick={() => setIsCollapsed((prev) => !prev)}
+        className="w-full relative flex items-center justify-end text-[18px] font-medium mb-3 bg-[#213b54] rounded px-3 py-1.5 cursor-pointer"
+      >
+        <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
+          <SignalIcon size={16} />
+          Signal
+        </span>
+        {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+      </button>
 
-      {commanderView === 'commander2' && isCollapsed ? null : (
+      {isCollapsed ? null : (
       <div className="grid grid-cols-2 gap-4">
         {/* S-band */}
         <div className="flex flex-col items-center">

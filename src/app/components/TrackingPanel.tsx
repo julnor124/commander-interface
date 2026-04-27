@@ -5,7 +5,6 @@ interface TrackingPanelProps {
   isActivePass?: boolean;
   isUnavailable?: boolean;
   passProgress?: number;
-  commanderView?: 'commander1' | 'commander2';
   forceCollapsed?: boolean;
   forceExpanded?: boolean;
 }
@@ -14,7 +13,6 @@ export default function TrackingPanel({
   isActivePass = false,
   isUnavailable = false,
   passProgress = 0,
-  commanderView = 'commander1',
   forceCollapsed = false,
   forceExpanded = false,
 }: TrackingPanelProps) {
@@ -97,26 +95,17 @@ export default function TrackingPanel({
 
   return (
     <div>
-      {commanderView === 'commander2' ? (
-        <button
-          onClick={() => setIsCollapsed((prev) => !prev)}
-          className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-2 cursor-pointer"
-        >
-          <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
-            <Activity size={16} />
-            Real Time Tracking
-          </span>
-          {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-        </button>
-      ) : (
-        <h2 className="text-[18px] font-medium mb-3 text-center bg-[#213b54] rounded px-3 py-1">
-          <span className="inline-flex items-center gap-1.5">
-            <Activity size={14} />
-            Real Time Tracking
-          </span>
-        </h2>
-      )}
-      {commanderView === 'commander2' && isCollapsed ? null : (
+      <button
+        onClick={() => setIsCollapsed((prev) => !prev)}
+        className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-2 cursor-pointer"
+      >
+        <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
+          <Activity size={16} />
+          Real Time Tracking
+        </span>
+        {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+      </button>
+      {isCollapsed ? null : (
         <div className="space-y-4">
           {renderTrackBox('Time error', 'h-[220px]')}
           {renderTrackBox('El delta', 'h-[42px]')}

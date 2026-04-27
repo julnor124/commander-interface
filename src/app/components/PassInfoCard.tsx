@@ -11,7 +11,6 @@ interface PassInfoCardProps {
   timeLeftLabel?: string;
   countdownLabel?: string;
   missionNote?: string;
-  commanderView?: 'commander1' | 'commander2';
   forceExpanded?: boolean;
   forceCollapsed?: boolean;
 }
@@ -34,12 +33,11 @@ export default function PassInfoCard({
   timeLeftLabel = '0min 00s',
   countdownLabel = '0min 00s',
   missionNote = '2026-04-13 Prepare_pass',
-  commanderView = 'commander1',
   forceExpanded = false,
   forceCollapsed = false,
 }: PassInfoCardProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const isLockedOpen = commanderView === 'commander2' && forceExpanded;
+  const isLockedOpen = forceExpanded;
   const showContent = !isCollapsed || isLockedOpen;
   const isFinalCountdownAlert = isPendingPassStart && passStartsInSeconds <= 15;
   useEffect(() => {
@@ -84,35 +82,26 @@ export default function PassInfoCard({
   const passStatusClass = isActivePass
     ? 'bg-[#17455f] text-[#7cd7ff] border border-[#3ABEFF]/60'
     : 'bg-[#7a6624] text-[#f6d46b] border border-[#9b8440]';
-  const isC2UnavailableLayout = commanderView === 'commander2' && isUnavailable;
+  const isUnavailableLayout = isUnavailable;
 
   return (
     <div>
-      {commanderView === 'commander2' ? (
-        <button
-          onClick={() => {
-            if (isLockedOpen) return;
-            setIsCollapsed((prev) => !prev);
-          }}
-          className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-2 cursor-pointer"
-        >
-          <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
-            <Clock3 size={16} />
-            Pass Information
-          </span>
-          {isCollapsed && !isLockedOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-        </button>
-      ) : (
-        <h2 className="text-[18px] font-medium mb-3 text-center bg-[#213b54] rounded px-3 py-1">
-          <span className="inline-flex items-center gap-1.5">
-            <Clock3 size={14} />
-            Pass Information
-          </span>
-        </h2>
-      )}
+      <button
+        onClick={() => {
+          if (isLockedOpen) return;
+          setIsCollapsed((prev) => !prev);
+        }}
+        className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-2 cursor-pointer"
+      >
+        <span className="absolute inset-x-0 flex items-center justify-center gap-1.5">
+          <Clock3 size={16} />
+          Pass Information
+        </span>
+        {isCollapsed && !isLockedOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+      </button>
       {showContent ? (
       <div
-        className={`relative rounded-sm p-3 ${isC2UnavailableLayout ? 'grid grid-cols-1' : 'grid grid-cols-[1fr_auto]'} gap-3 ${
+        className={`relative rounded-sm p-3 ${isUnavailableLayout ? 'grid grid-cols-1' : 'grid grid-cols-[1fr_auto]'} gap-3 ${
           isUnavailable
             ? 'border border-[#7f8f9d] bg-[#13202c]'
             : isActivePass
@@ -121,7 +110,7 @@ export default function PassInfoCard({
         }`}
       >
         <div className="space-y-2">
-          <div className={`${isC2UnavailableLayout ? 'min-h-[120px] flex items-center justify-center text-center' : 'min-h-[92px]'}`}>
+          <div className={`${isUnavailableLayout ? 'min-h-[120px] flex items-center justify-center text-center' : 'min-h-[92px]'}`}>
             <div className="mb-0.5">
               {primaryLabel && (
                 <div className="text-[clamp(14px,1.05vw,22px)] text-[#8ea2b3]">
@@ -154,7 +143,7 @@ export default function PassInfoCard({
           )}
         </div>
 
-        {!isC2UnavailableLayout && (
+        {!isUnavailableLayout && (
         <div className="space-y-1.5 min-w-[120px]">
           <div className="flex items-center justify-between mb-1">
             <span className="min-w-[68px]" />
