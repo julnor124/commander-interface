@@ -1,3 +1,7 @@
+// actionsApi API layer.
+import { mapRunActionRequest, mapRunActionResponse } from "./mappers";
+
 export async function runAction(actionName: string) {
-  return { actionName, status: "ok" as const };
+  const request = mapRunActionRequest(actionName);
+  return mapRunActionResponse({ actionName: request.actionName, status: "ok" });
 }

@@ -1,3 +1,4 @@
+// useCortexAllocation hook logic.
 import { useEffect, useMemo, useState } from 'react';
 import { allocateCortexForAntenna } from '../api/cortexAllocationMockApi';
 
@@ -32,34 +33,38 @@ export function useCortexAllocation(params: {
 
   useEffect(() => {
     if (!hasScheduledPass) return;
+    if (assignedCortexIdsByAntennaId[selectedAntennaId]) return;
 
-    let allocatedCortex: string[] = [];
+    const allocatedCortex = allocateCortexForAntenna({
+      selectedAntennaId,
+      existingAllocations: assignedCortexIdsByAntennaId,
+      cortexCardIds: cortexCards.map((card) => card.id),
+      cortexPerPass,
+    });
+
     setAssignedCortexIdsByAntennaId((prev) => {
-      if (prev[selectedAntennaId]) {
-        allocatedCortex = prev[selectedAntennaId];
-        return prev;
-      }
-
-      allocatedCortex = allocateCortexForAntenna({
-        selectedAntennaId,
-        existingAllocations: prev,
-        cortexCardIds: cortexCards.map((card) => card.id),
-        cortexPerPass,
-      });
-
+      if (prev[selectedAntennaId]) return prev;
       return {
         ...prev,
         [selectedAntennaId]: allocatedCortex,
       };
     });
 
-    if (allocatedCortex.length > 0) {
-      log(`Allocated ${allocatedCortex.join(', ')} to ${selectedAntennaName}`);
-    } else {
-      log(`No available Cortex for ${selectedAntennaName}`);
-    }
+    log(
+      allocatedCortex.length > 0
+        ? `Allocated ${allocatedCortex.join(', ')} to ${selectedAntennaName}`
+        : `No available Cortex for ${selectedAntennaName}`,
+    );
     log(`Pass queued for ${selectedAntennaName}`);
-  }, [cortexCards, cortexPerPass, hasScheduledPass, log, selectedAntennaId, selectedAntennaName]);
+  }, [
+    assignedCortexIdsByAntennaId,
+    cortexCards,
+    cortexPerPass,
+    hasScheduledPass,
+    log,
+    selectedAntennaId,
+    selectedAntennaName,
+  ]);
 
   useEffect(() => {
     if (!hasScheduledPass || !isCortexEngaged) {

@@ -1,12 +1,7 @@
-export const ACTIVITY_LOG_EVENT = 'activity-log-entry';
+// activityLogBus module.
+import { ActivityEntry } from './types';
 
-export interface ActivityEntry {
-  timestamp: string;
-  message: string;
-  type?: 'activity' | 'alarm';
-  antennaId?: string;
-  antennaName?: string;
-}
+export const ACTIVITY_LOG_EVENT = 'activity-log-entry';
 
 interface ActivityContext {
   antennaId: string;

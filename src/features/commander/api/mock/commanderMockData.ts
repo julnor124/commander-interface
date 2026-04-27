@@ -1,14 +1,22 @@
-import { Antenna } from "../../types";
+// commanderMockData API layer.
+import {
+  AntennaDto,
+  HdrUnitBaseDto,
+  MissionNoteByAntennaIdDto,
+} from "../contracts";
+
+const todayIsoDate = new Date().toISOString().slice(0, 10);
+const missionNote = (missionName: string) => `${todayIsoDate} Prepare_pass ${missionName}`;
 
 export const MOCK_DEFAULT_SELECTED_ANTENNA = "maja";
 export const MOCK_ACTIVE_HDR_IDS: string[] = [];
 
-export const MOCK_HDR_UNITS_BASE = Array.from({ length: 12 }, (_, idx) => ({
+export const MOCK_HDR_UNITS_BASE_DTO: HdrUnitBaseDto[] = Array.from({ length: 12 }, (_, idx) => ({
   id: `hdr-rtt-${idx + 1}`,
   label: `Hdr/Rtt ${idx + 1}`,
 }));
 
-export const MOCK_ANTENNAS: Antenna[] = [
+export const MOCK_ANTENNAS_DTO: AntennaDto[] = [
   { id: "maja", name: "Maja", color: "#3ABEFF", status: "inactive" },
   { id: "elin", name: "Elin", color: "#B8963E", status: "inactive" },
   { id: "bella", name: "Bella", color: "#B8963E", status: "inactive" },
@@ -23,17 +31,17 @@ export const MOCK_ANTENNAS: Antenna[] = [
   { id: "hugo", name: "Hugo", color: "#6B7C8F", status: "inactive" },
 ];
 
-export const MOCK_MISSION_NOTE_BY_ANTENNA: Record<string, string> = {
-  maja: "2026-04-13 Prepare_pass Aurora",
-  elin: "2026-04-13 Prepare_pass Borealis",
-  bella: "2026-04-13 Prepare_pass Cinder",
-  camilla: "2026-04-13 Prepare_pass Drift",
-  peter: "2026-04-13 Prepare_pass Eclipse",
-  vilma: "2026-04-13 Prepare_pass Falcon",
-  emma: "2026-04-13 Prepare_pass Glacier",
-  malin: "2026-04-13 Prepare_pass Horizon",
-  frida: "2026-04-13 Prepare_pass Ion",
-  amanda: "2026-04-13 Prepare_pass Juno",
-  hanna: "2026-04-13 Prepare_pass Kestrel",
-  hugo: "2026-04-13 Prepare_pass Lynx",
+export const MOCK_MISSION_NOTE_BY_ANTENNA_DTO: MissionNoteByAntennaIdDto = {
+  maja: missionNote("Aurora"),
+  elin: missionNote("Borealis"),
+  bella: missionNote("Cinder"),
+  camilla: missionNote("Drift"),
+  peter: missionNote("Eclipse"),
+  vilma: missionNote("Falcon"),
+  emma: missionNote("Glacier"),
+  malin: missionNote("Horizon"),
+  frida: missionNote("Ion"),
+  amanda: missionNote("Juno"),
+  hanna: missionNote("Kestrel"),
+  hugo: missionNote("Lynx"),
 };

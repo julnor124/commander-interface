@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+// useCommanderViewModel hook logic.
+import { useEffect, useMemo, useState } from "react";
 import {
-  logActivity,
-  logAlarm,
-  setActivityAntennaContext,
-} from "../../activityLog/activityLogBus";
-import { CommanderPageModel } from "../components/CommanderPage";
+  publishActivity,
+  publishAlarm,
+  setActivityContext,
+} from "../../activityLog/api/activityLogApi";
+import { CommanderPageModel } from "../types";
 import { usePassSchedule } from "../../passes/hooks/usePassSchedule";
 import { useCortexAllocation } from "../../cortex/hooks/useCortexAllocation";
 import {
@@ -17,19 +18,21 @@ import {
 } from "../api/commanderMockApi";
 
 const CORTEX_PER_PASS = 2;
+const TODAY_ISO_DATE = new Date().toISOString().slice(0, 10);
 
 export function useCommanderViewModel(): CommanderPageModel {
-  const antennas = getAntennas();
-  const cortexCards = getCortexCards();
-  const missionNoteByAntennaId = getMissionNoteByAntenna();
-  const defaultSelectedAntenna = getDefaultSelectedAntennaId();
-  const hdrUnitsBase = getHdrUnitsBase();
-  const configuredActiveHdrIds = getActiveHdrIds();
+  const antennas = useMemo(() => getAntennas(), []);
+  const cortexCards = useMemo(() => getCortexCards(), []);
+  const missionNoteByAntennaId = useMemo(() => getMissionNoteByAntenna(), []);
+  const defaultSelectedAntenna = useMemo(() => getDefaultSelectedAntennaId(), []);
+  const hdrUnitsBase = useMemo(() => getHdrUnitsBase(), []);
+  const configuredActiveHdrIds = useMemo(() => getActiveHdrIds(), []);
 
   const [selectedAntenna, setSelectedAntenna] = useState<string>(defaultSelectedAntenna);
   const [isCortexDropdownOpen, setIsCortexDropdownOpen] = useState(false);
   const [isHdrDropdownOpen, setIsHdrDropdownOpen] = useState(false);
   const [openHdrIds, setOpenHdrIds] = useState<string[]>([]);
+  const [dismissedCortexIds, setDismissedCortexIds] = useState<string[]>([]);
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
   const [loggedStartedPasses, setLoggedStartedPasses] = useState<Record<string, boolean>>({});
   const [loggedIncomingAlarmWindowStartByAntennaId, setLoggedIncomingAlarmWindowStartByAntennaId] =
@@ -87,7 +90,7 @@ export function useCommanderViewModel(): CommanderPageModel {
   }));
 
   const selectedMissionNote =
-    missionNoteByAntennaId[selectedAntenna] ?? "2026-04-13 Prepare_pass";
+    missionNoteByAntennaId[selectedAntenna] ?? `${TODAY_ISO_DATE} Prepare_pass`;
   const selectedMissionName =
     selectedMissionNote.split("Prepare_pass ")[1] ?? selectedMissionNote;
 
@@ -103,12 +106,22 @@ export function useCommanderViewModel(): CommanderPageModel {
     selectedAntennaName,
     hasScheduledPass,
     isCortexEngaged,
-    log: logActivity,
+    log: publishActivity,
   });
+
+  const handleToggleCortexCard = (id: string) => {
+    setDismissedCortexIds((prev) => prev.filter((dismissedId) => dismissedId !== id));
+    toggleCortexCard(id);
+  };
+
+  const dismissCortexCard = (id: string) => {
+    setDismissedCortexIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    setOpenCortexIds((prev) => prev.filter((existingId) => existingId !== id));
+  };
 
   useEffect(() => {
     if (!selectedAntennaData) return;
-    setActivityAntennaContext({
+    setActivityContext({
       antennaId: selectedAntennaData.id,
       antennaName: selectedAntennaData.name,
     });
@@ -119,8 +132,11 @@ export function useCommanderViewModel(): CommanderPageModel {
     if (loggedStartedPasses[selectedAntenna]) return;
 
     const passStartedMessage = `Pass started for ${selectedAntennaName}`;
-    logActivity(passStartedMessage);
-    logAlarm(passStartedMessage, {
+    publishActivity(passStartedMessage, {
+      antennaId: selectedAntenna,
+      antennaName: selectedAntennaName,
+    });
+    publishAlarm(passStartedMessage, {
       antennaId: selectedAntenna,
       antennaName: selectedAntennaName,
     });
@@ -134,6 +150,7 @@ export function useCommanderViewModel(): CommanderPageModel {
     setIsHdrDropdownOpen(false);
     setOpenHdrIds([]);
     setOpenCortexIds([]);
+    setDismissedCortexIds([]);
   }, [isPreparingView, isDefaultCountdownView, selectedAntenna, setOpenCortexIds]);
 
   useEffect(() => {
@@ -158,7 +175,7 @@ export function useCommanderViewModel(): CommanderPageModel {
       if (loggedIncomingAlarmWindowStartByAntennaId[antenna.id] === passWindow.startAt) continue;
 
       const minutesUntilStart = Math.ceil(msUntilStart / 60_000);
-      logAlarm(`Incoming pass for ${antenna.name} in ${minutesUntilStart} min`, {
+      publishAlarm(`Incoming pass for ${antenna.name} in ${minutesUntilStart} min`, {
         antennaId: antenna.id,
         antennaName: antenna.name,
       });
@@ -190,11 +207,12 @@ export function useCommanderViewModel(): CommanderPageModel {
     cortexCards,
     hdrUnits,
     openCortexIds,
-    setOpenCortexIds,
     openHdrIds,
+    dismissedCortexIds,
     effectiveActiveCortexIds,
-    toggleCortexCard,
+    toggleCortexCard: handleToggleCortexCard,
     toggleHdrCard,
+    dismissCortexCard,
     isPendingPassStart,
     msUntilPassStart,
     passStartsAtLabel,

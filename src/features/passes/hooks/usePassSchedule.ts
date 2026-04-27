@@ -1,3 +1,4 @@
+// usePassSchedule hook logic.
 import { useEffect, useMemo, useState } from 'react';
 import { PassWindow } from '../types';
 import {

@@ -1,3 +1,4 @@
+// usePanelCollapse hook logic.
 import { useEffect, useState } from 'react';
 
 interface UsePanelCollapseOptions {

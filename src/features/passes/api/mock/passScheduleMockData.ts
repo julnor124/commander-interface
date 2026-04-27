@@ -1,3 +1,4 @@
+// passScheduleMockData API layer.
 export const MOCK_PASS_DURATION_MINUTES = 15;
 export const MOCK_DEFAULT_PASS_DURATION_MS = MOCK_PASS_DURATION_MINUTES * 60_000;
 

@@ -1,3 +1,4 @@
+// useActionsConfig hook logic.
 export type ActionSection = {
   title: string;
   actions: Array<{ label: string; log: string }>;

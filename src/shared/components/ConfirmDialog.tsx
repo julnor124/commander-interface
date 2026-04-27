@@ -1,3 +1,4 @@
+// ConfirmDialog UI component.
 import React from 'react';
 
 interface ConfirmDialogProps {

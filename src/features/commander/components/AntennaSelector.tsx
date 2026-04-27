@@ -1,3 +1,4 @@
+// AntennaSelector UI component.
 import React from 'react';
 import { Antenna } from '../types';
 

@@ -1,3 +1,4 @@
+// SignalPanel UI component.
 import React, { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Signal as SignalIcon } from 'lucide-react';
 import { SignalPanelProps } from '../types';

@@ -1,3 +1,4 @@
+// useOffsetControls hook logic.
 import { useMemo, useState } from 'react';
 import {
   decrementOffsetValue,

@@ -1,6 +1,7 @@
+// ControlPanel UI component.
 import React from 'react';
 import { ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
-import { logActivity } from '../../activityLog/activityLogBus';
+import { publishActivity } from '../../activityLog/api/activityLogApi';
 import { useOffsetControls } from '../../offsets/hooks/useOffsetControls';
 import { usePanelCollapse } from '../../ui/hooks/usePanelCollapse';
 import { useControlState } from '../hooks/useControlState';
@@ -37,21 +38,22 @@ export default function ControlPanel({
     requestRfOff,
     confirmMatrixOff,
     confirmRfOff,
-  } = useControlState(logActivity);
+    runRfCalibration,
+  } = useControlState();
   const clickFeedbackClass =
     'press-feedback cursor-pointer transition-all duration-150 active:scale-95 hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(58,190,255,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3ABEFF]/70';
   const movedActionGroups = useControlOperations();
 
   const { controls: offsetControls, increment, decrement, reset } = useOffsetControls({
-    onIncrement: (key) => logActivity(`Offset ${key} increased`),
-    onDecrement: (key) => logActivity(`Offset ${key} decreased`),
-    onReset: () => logActivity('Offsets reset to 0'),
+    onIncrement: (key) => publishActivity(`Offset ${key} increased`),
+    onDecrement: (key) => publishActivity(`Offset ${key} decreased`),
+    onReset: () => publishActivity('Offsets reset to 0'),
   });
 
   const handleResetOffsets = () => {
     const shouldReset = window.confirm('Are you sure you want to reset?');
     if (!shouldReset) {
-      logActivity('Offset reset cancelled');
+      publishActivity('Offset reset cancelled');
       return;
     }
 
@@ -102,7 +104,7 @@ export default function ControlPanel({
             <div className="grid grid-cols-2 gap-2 mb-2">
               <button
                 onClick={() => {
-                  handleRfOn();
+                  void handleRfOn();
                 }}
                 className={`px-2 py-0.5 rounded transition-colors text-[10px] ${clickFeedbackClass} ${
                   rfSelection === 'ON'
@@ -114,7 +116,7 @@ export default function ControlPanel({
               </button>
               <button
                 onClick={() => {
-                  handleXRfOn();
+                  void handleXRfOn();
                 }}
                 className={`px-2 py-0.5 rounded transition-colors text-[10px] ${clickFeedbackClass} ${
                   xRfSelection === 'ON'
@@ -151,13 +153,13 @@ export default function ControlPanel({
             </div>
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => logActivity('RF Calibrate pressed')}
+                onClick={() => void runRfCalibration('RF')}
                 className={`w-full px-2 py-0.5 bg-[#3a5268] text-[#e7edf2] rounded text-[10px] ${clickFeedbackClass}`}
               >
                 Calibrate
               </button>
               <button
-                onClick={() => logActivity('RF Calibrate Xb pressed')}
+                onClick={() => void runRfCalibration('X RF')}
                 className={`w-full px-2 py-0.5 bg-[#3a5268] text-[#e7edf2] rounded text-[10px] ${clickFeedbackClass}`}
               >
                 Calibrate Xb
@@ -182,7 +184,7 @@ export default function ControlPanel({
                     {group.actions.map((action) => (
                       <button
                         key={action.label}
-                        onClick={() => logActivity(action.log)}
+                        onClick={() => publishActivity(action.log)}
                         className={`w-full px-2 py-1 bg-[#3a5268] text-[#e7edf2] rounded text-[10px] leading-tight text-left ${clickFeedbackClass}`}
                       >
                         {action.label}

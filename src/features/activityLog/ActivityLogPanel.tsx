@@ -1,3 +1,4 @@
+// ActivityLogPanel module.
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp, List } from 'lucide-react';
 import ConfirmDialog from '../../shared/components/ConfirmDialog';

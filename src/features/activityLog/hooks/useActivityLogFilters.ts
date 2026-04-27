@@ -1,5 +1,6 @@
+// useActivityLogFilters hook logic.
 import { useMemo, useState } from "react";
-import { ActivityEntry } from "../activityLogBus";
+import { ActivityEntry } from "../types";
 
 export function useActivityLogFilters(params: {
   entries: ActivityEntry[];

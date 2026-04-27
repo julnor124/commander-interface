@@ -1,3 +1,4 @@
+// useActionsTabs hook logic.
 import { useMemo, useState } from "react";
 import { ActionMenuName, ActionSection } from "./useActionsConfig";
 

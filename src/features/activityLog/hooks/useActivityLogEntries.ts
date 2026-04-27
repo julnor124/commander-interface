@@ -1,21 +1,24 @@
+// useActivityLogEntries hook logic.
 import { useEffect, useState } from "react";
-import { ACTIVITY_LOG_EVENT, ActivityEntry } from "../activityLogBus";
+import {
+  getActivityLogSeed,
+  subscribeToActivityLog,
+} from "../api/activityLogApi";
+import { ActivityEntry } from "../types";
 
 export function useActivityLogEntries(selectedAntennaId: string) {
-  const [entries, setEntries] = useState<ActivityEntry[]>([]);
+  const [entries, setEntries] = useState<ActivityEntry[]>(() =>
+    getActivityLogSeed(),
+  );
   const [isLogUpdated, setIsLogUpdated] = useState(false);
 
   useEffect(() => {
-    const handler = (event: Event) => {
-      const custom = event as CustomEvent<ActivityEntry>;
-      const payload = custom.detail;
+    const unsubscribe = subscribeToActivityLog((payload) => {
       if (!payload?.message) return;
       setEntries((prev) => [...prev, payload].slice(-50));
       setIsLogUpdated(true);
-    };
-
-    window.addEventListener(ACTIVITY_LOG_EVENT, handler);
-    return () => window.removeEventListener(ACTIVITY_LOG_EVENT, handler);
+    });
+    return unsubscribe;
   }, []);
 
   useEffect(() => {

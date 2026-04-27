@@ -1,4 +1,5 @@
-import { CortexData } from "../../commander/types";
+// cortexMockData API layer.
+import { CortexData } from "../../../commander/types";
 
 export const MOCK_CORTEX_CARDS: CortexData[] = [
   { id: "cortex-1", name: "CORTEX X", sifQulefx: "SIF-QULEFX", sifQuleftx: "SIF-QULEFTX", sifQuleftxAlt: "INFO", sdmFa: "SIM 1", sdmFas: "FA", sdmFasn: "FAS", monJ: "MON-J", mosN: "MOD_4", hdrJ: "TM-B", dspO: "DOP-0", img: "20", pll: "PLL", sweep: "SWEEP", rec: "REC", carrier: "CARRIER" },

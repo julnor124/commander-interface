@@ -1,3 +1,4 @@
+// TrackingPanel UI component.
 import React, { useEffect, useState } from 'react';
 import { Activity, ChevronDown, ChevronUp } from 'lucide-react';
 import { TrackingPanelProps } from '../types';

@@ -1,6 +1,5 @@
-export type OffsetKey = "Time" | "El" | "Az" | "Step";
-
-export type OffsetState = Record<OffsetKey, number>;
+// offsetsMockApi API layer.
+import { OffsetKey, OffsetState } from "../types";
 
 export const INITIAL_OFFSET_STATE: OffsetState = {
   Time: 0,
@@ -8,6 +7,8 @@ export const INITIAL_OFFSET_STATE: OffsetState = {
   Az: 0,
   Step: 0,
 };
+
+export type { OffsetKey, OffsetState };
 
 export function incrementOffsetValue(currentValue: number): number {
   return currentValue + 1;

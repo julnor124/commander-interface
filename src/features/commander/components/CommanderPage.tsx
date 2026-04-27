@@ -1,3 +1,4 @@
+// CommanderPage UI component.
 import React from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import AntennaSelector from './AntennaSelector';
@@ -10,58 +11,10 @@ import ControlPanel from '../../control/components/ControlPanel';
 import ActionsPanel from '../../actions/components/ActionsPanel';
 import TrackingPanel from '../../tracking/components/TrackingPanel';
 import ActivityLogPanel from '../../activityLog/ActivityLogPanel';
-import { Antenna, CortexData, HdrUnit } from '../types';
+import { CommanderPageModel } from '../types';
+import { buildVisibleIds } from '../hooks/cardVisibility';
 
 const getTrailingNumber = (id: string) => id.split('-').pop() ?? id;
-
-export interface CommanderPageModel {
-  antennas: Antenna[];
-  selectedAntenna: string;
-  selectedAntennaName: string;
-  setSelectedAntenna: (id: string) => void;
-
-  isActivePass: boolean;
-  isUnavailable: boolean;
-  activePassAntennaIds: string[];
-
-  clickFeedbackClass: string;
-
-  // Left panel state
-  isCortexDropdownOpen: boolean;
-  setIsCortexDropdownOpen: (updater: (prev: boolean) => boolean) => void;
-  isHdrDropdownOpen: boolean;
-  setIsHdrDropdownOpen: (updater: (prev: boolean) => boolean) => void;
-  isLeftPanelCollapsed: boolean;
-  setIsLeftPanelCollapsed: (updater: (prev: boolean) => boolean) => void;
-
-  // Cortex/HDR data
-  cortexCards: CortexData[];
-  hdrUnits: HdrUnit[];
-  openCortexIds: string[];
-  setOpenCortexIds: (updater: (prev: string[]) => string[]) => void;
-  openHdrIds: string[];
-  effectiveActiveCortexIds: string[];
-
-  toggleCortexCard: (id: string) => void;
-  toggleHdrCard: (id: string) => void;
-
-  // Pass & view flags
-  isPendingPassStart: boolean;
-  msUntilPassStart: number;
-  passStartsAtLabel: string;
-  passEndsAtLabel: string;
-  timeLeftLabel: string;
-  countdownLabel: string;
-  missionNote: string;
-  missionName: string;
-  passProgress: number;
-
-  isPreparingView: boolean;
-  isUnavailableView: boolean;
-  isFocusedPassView: boolean;
-  isDefaultCountdownView: boolean;
-  isPreparingFinalWindowView: boolean;
-}
 
 export default function CommanderPage({ model }: { model: CommanderPageModel }) {
   const {
@@ -82,11 +35,12 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
     cortexCards,
     hdrUnits,
     openCortexIds,
-    setOpenCortexIds,
     openHdrIds,
+    dismissedCortexIds,
     effectiveActiveCortexIds,
     toggleCortexCard,
     toggleHdrCard,
+    dismissCortexCard,
     isPendingPassStart,
     msUntilPassStart,
     passStartsAtLabel,
@@ -104,8 +58,15 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
   } = model;
   const hdrUnitsById = new Map(hdrUnits.map((unit) => [unit.id, unit]));
   const activeHdrIds = hdrUnits.filter((unit) => unit.active).map((unit) => unit.id);
-  const visibleCortexIds = Array.from(new Set([...(isActivePass ? effectiveActiveCortexIds : [])]));
-  const visibleHdrIds = Array.from(new Set([...(isActivePass ? activeHdrIds : [])]));
+  const visibleCortexIds = buildVisibleIds({
+    activeIds: isActivePass ? effectiveActiveCortexIds : [],
+    openIds: openCortexIds,
+    dismissedIds: dismissedCortexIds,
+  });
+  const visibleHdrIds = buildVisibleIds({
+    activeIds: isActivePass ? activeHdrIds : [],
+    openIds: openHdrIds,
+  });
 
   return (
     <div className="min-h-screen bg-[#0f1c28] text-white">
@@ -136,11 +97,11 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
           <div className="space-y-6">
             <div>
               <button
-                onClick={() => setIsLeftPanelCollapsed(() => false)}
-                className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-2"
+                onClick={() => setIsLeftPanelCollapsed((prev) => !prev)}
+                className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-2 cursor-pointer"
               >
                 <span className="absolute inset-x-0 text-center">Cortex and Hdr/Rtt</span>
-                <ChevronUp size={16} />
+                {isLeftPanelCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
               </button>
 
               {isLeftPanelCollapsed ? null : (
@@ -220,7 +181,7 @@ export default function CommanderPage({ model }: { model: CommanderPageModel }) 
                                   : 'Will be used'
                                 : 'Not used here'
                             }
-                            onRemove={() => setOpenCortexIds((prev) => prev.filter((id) => id !== card.id))}
+                            onRemove={() => dismissCortexCard(card.id)}
                           />
                         </React.Fragment>
                       ))}

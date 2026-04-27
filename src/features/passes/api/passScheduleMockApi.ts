@@ -1,4 +1,7 @@
+// passScheduleMockApi API layer.
 import { PassWindow } from "../types";
+import { GetInitialPassScheduleResponseDto } from "./contracts";
+import { mapInitialPassScheduleFromDto } from "./mappers";
 import {
   MOCK_DEFAULT_PASS_DURATION_MS,
   MOCK_PASS_DURATION_MS_BY_ANTENNA,
@@ -13,19 +16,21 @@ interface AntennaLike {
 export function getInitialPassSchedule(antennas: AntennaLike[]): Record<string, PassWindow> {
   const now = Date.now();
   const minute = 60_000;
-  const schedule: Record<string, PassWindow> = {};
+  const passWindowsByAntennaIdDto: GetInitialPassScheduleResponseDto["passWindowsByAntennaId"] = {};
 
   for (const antenna of antennas) {
     const startOffsetMinutes = MOCK_START_OFFSET_MINUTES_BY_ANTENNA[antenna.id] ?? 20;
     const durationMs = MOCK_PASS_DURATION_MS_BY_ANTENNA[antenna.id] ?? MOCK_DEFAULT_PASS_DURATION_MS;
     const startAt = now + startOffsetMinutes * minute;
-    schedule[antenna.id] = {
-      startAt,
-      endAt: startAt + durationMs,
+    passWindowsByAntennaIdDto[antenna.id] = {
+      startAtIso: new Date(startAt).toISOString(),
+      endAtIso: new Date(startAt + durationMs).toISOString(),
     };
   }
 
-  return schedule;
+  return mapInitialPassScheduleFromDto({
+    passWindowsByAntennaId: passWindowsByAntennaIdDto,
+  });
 }
 
 export function getPassDurationMs(antennaId: string): number {

@@ -1,8 +1,9 @@
+// CortexCard UI component.
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { CortexData } from '../types';
-import { logActivity } from '../../activityLog/activityLogBus';
+import { publishActivity } from '../../activityLog/api/activityLogApi';
 
 interface CortexCardProps {
   data: CortexData;
@@ -32,7 +33,7 @@ export default function CortexCard({
   };
 
   const handleSweepClick = () => {
-    logActivity(`${cardLabel}: SWEEP pressed`);
+    publishActivity(`${cardLabel}: SWEEP pressed`);
   };
 
   return (

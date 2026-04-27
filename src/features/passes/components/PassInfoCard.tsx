@@ -1,3 +1,4 @@
+// PassInfoCard UI component.
 import React, { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Clock3 } from 'lucide-react';
 
@@ -22,6 +23,7 @@ const PASS_INFO_METRICS = [
   { label: '5°' },
   { label: 'LOS' },
 ];
+const TODAY_ISO_DATE = new Date().toISOString().slice(0, 10);
 
 export default function PassInfoCard({
   isActivePass = false,
@@ -32,13 +34,12 @@ export default function PassInfoCard({
   passEndsAtLabel = '--:--',
   timeLeftLabel = '0min 00s',
   countdownLabel = '0min 00s',
-  missionNote = '2026-04-13 Prepare_pass',
+  missionNote = `${TODAY_ISO_DATE} Prepare_pass`,
   forceExpanded = false,
   forceCollapsed = false,
 }: PassInfoCardProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const isLockedOpen = forceExpanded;
-  const showContent = !isCollapsed || isLockedOpen;
+  const showContent = !isCollapsed;
   const isFinalCountdownAlert = isPendingPassStart && passStartsInSeconds <= 15;
   useEffect(() => {
     if (forceExpanded) {
@@ -88,7 +89,6 @@ export default function PassInfoCard({
     <div>
       <button
         onClick={() => {
-          if (isLockedOpen) return;
           setIsCollapsed((prev) => !prev);
         }}
         className="w-full relative flex items-center justify-end text-[16px] font-medium mb-2 bg-[#213b54] rounded px-3 py-2 cursor-pointer"
@@ -97,7 +97,7 @@ export default function PassInfoCard({
           <Clock3 size={16} />
           Pass Information
         </span>
-        {isCollapsed && !isLockedOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+        {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
       </button>
       {showContent ? (
       <div

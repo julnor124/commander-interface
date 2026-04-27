@@ -1,6 +1,8 @@
+// ActionsPanel UI component.
 import React from 'react';
 import { ChevronDown, ChevronUp, ListChecks } from 'lucide-react';
-import { logActivity } from '../../activityLog/activityLogBus';
+import { publishActivity } from '../../activityLog/api/activityLogApi';
+import { runAction } from '../api/actionsApi';
 import { useOffsetControls } from '../../offsets/hooks/useOffsetControls';
 import { usePanelCollapse } from '../../ui/hooks/usePanelCollapse';
 import { useActionsConfig } from '../hooks/useActionsConfig';
@@ -37,16 +39,20 @@ export default function ActionsPanel({
     hiddenSectionTitles,
   });
   const { controls: offsetControls, increment, decrement, reset } = useOffsetControls({
-    onIncrement: (key) => logActivity(`Offset ${key} increased`),
-    onDecrement: (key) => logActivity(`Offset ${key} decreased`),
-    onReset: () => logActivity('Offsets reset to 0'),
+    onIncrement: (key) => publishActivity(`Offset ${key} increased`),
+    onDecrement: (key) => publishActivity(`Offset ${key} decreased`),
+    onReset: () => publishActivity('Offsets reset to 0'),
   });
   const handleResetOffsets = () => {
     if (!window.confirm('Are you sure you want to reset?')) {
-      logActivity('Offset reset cancelled');
+      publishActivity('Offset reset cancelled');
       return;
     }
     reset();
+  };
+  const handleRunAction = async (message: string) => {
+    await runAction(message);
+    publishActivity(message);
   };
 
   return (
@@ -91,7 +97,7 @@ export default function ActionsPanel({
                 ? activeSection.actions.map((action) => (
                     <button
                       key={action.label}
-                      onClick={() => logActivity(action.log)}
+                      onClick={() => void handleRunAction(action.log)}
                       className={buttonClass}
                     >
                       {action.label}
@@ -134,7 +140,9 @@ export default function ActionsPanel({
                   : activeMenuOptions?.map((option) => (
                     <button
                       key={option}
-                      onClick={() => logActivity(`${activeActionTab}: ${option}`)}
+                      onClick={() =>
+                        void handleRunAction(`${activeActionTab}: ${option}`)
+                      }
                       className={buttonClass}
                     >
                       {option}

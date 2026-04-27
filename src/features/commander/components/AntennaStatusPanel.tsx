@@ -1,3 +1,4 @@
+// AntennaStatusPanel UI component.
 import React, { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Crosshair } from 'lucide-react';
 

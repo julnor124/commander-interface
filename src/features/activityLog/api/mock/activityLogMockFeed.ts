@@ -1,3 +1,4 @@
-import { ActivityEntry } from "../../activityLogBus";
+// activityLogMockFeed API layer.
+import { ActivityEntryDto } from "../contracts";
 
-export const MOCK_ACTIVITY_LOG_FEED: ActivityEntry[] = [];
+export const MOCK_ACTIVITY_LOG_FEED: ActivityEntryDto[] = [];

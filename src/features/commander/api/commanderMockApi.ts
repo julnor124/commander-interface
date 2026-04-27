@@ -1,15 +1,21 @@
-import { Antenna, CortexData } from "../types";
+// commanderMockApi API layer.
+import { Antenna, CortexData, HdrUnit } from "../types";
 import {
   MOCK_ACTIVE_HDR_IDS,
-  MOCK_ANTENNAS,
+  MOCK_ANTENNAS_DTO,
   MOCK_DEFAULT_SELECTED_ANTENNA,
-  MOCK_HDR_UNITS_BASE,
-  MOCK_MISSION_NOTE_BY_ANTENNA,
+  MOCK_HDR_UNITS_BASE_DTO,
+  MOCK_MISSION_NOTE_BY_ANTENNA_DTO,
 } from "./mock/commanderMockData";
-import { MOCK_CORTEX_CARDS } from "../../cortex/api/mock/cortexMockData";
+import { MOCK_CORTEX_CARDS } from "../../cortex/api/cortexApi";
+import {
+  mapAntennasFromDto,
+  mapHdrUnitsBaseFromDto,
+  mapMissionNoteByAntennaIdFromDto,
+} from "./mappers";
 
 export function getAntennas(): Antenna[] {
-  return MOCK_ANTENNAS;
+  return mapAntennasFromDto(MOCK_ANTENNAS_DTO);
 }
 
 export function getCortexCards(): CortexData[] {
@@ -20,8 +26,8 @@ export function getDefaultSelectedAntennaId(): string {
   return MOCK_DEFAULT_SELECTED_ANTENNA;
 }
 
-export function getHdrUnitsBase() {
-  return MOCK_HDR_UNITS_BASE;
+export function getHdrUnitsBase(): HdrUnit[] {
+  return mapHdrUnitsBaseFromDto(MOCK_HDR_UNITS_BASE_DTO);
 }
 
 export function getActiveHdrIds(): string[] {
@@ -29,5 +35,5 @@ export function getActiveHdrIds(): string[] {
 }
 
 export function getMissionNoteByAntenna(): Record<string, string> {
-  return MOCK_MISSION_NOTE_BY_ANTENNA;
+  return mapMissionNoteByAntennaIdFromDto(MOCK_MISSION_NOTE_BY_ANTENNA_DTO);
 }

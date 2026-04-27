@@ -1,3 +1,4 @@
+// Top-level app shell component.
 import React from "react";
 import CommanderLayout from "./layout/CommanderLayout";
 
